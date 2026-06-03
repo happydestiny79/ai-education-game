@@ -1,23 +1,19 @@
-# Android
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+# Dependencies
+node_modules/
 
-# Cursor / VS Code
+# Build
+dist/
+build/
+
+# IDE
 .vscode/
 .cursor/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Misc
 *.log
+.env

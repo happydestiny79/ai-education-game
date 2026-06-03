@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Education Game • Practical AI Literacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --primary: #6366f1;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .font-display {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .section {
+            scroll-margin-top: 80px;
+        }
+
+        .demo-card {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                       box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .ai-demo {
+            background: linear-gradient(145deg, #f8fafc, #f1e7ff);
+        }
+
+        .nav-active {
+            color: #6366f1;
+            font-weight: 600;
+        }
+
+        .metric {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <!-- Navbar -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-lg sticky top-0 z-50">
+        <div class="max-w-screen-xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-indigo-600 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-robot text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-display text-2xl font-semibold tracking-tighter">AIEG</span>
+                        <span class="text-xs text-zinc-500 ml-1.5 font-mono">v0.1</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-8 text-sm">
+                    <a href="#demos" class="hover:text-white transition-colors">Demos</a>
+                    <a href="#concepts" class="hover:text-white transition-colors">Concepts</a>
+                    <a href="#progress" class="hover:text-white transition-colors">Progress</a>
+                </div>
+                
+                <div class="flex items-center gap-x-3">
+                    <button onclick="resetProgress()" 
+                            class="px-4 py-2 text-xs font-medium rounded-3xl border border-zinc-700 hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
+                        <i class="fa-solid fa-redo text-xs"></i>
+                        <span>Reset</span>
+                    </button>
+                    <button onclick="deployToGitHubPages()" 
+                            class="px-5 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-3xl flex items-center gap-x-2 hover:bg-zinc-100 transition-all active:scale-[0.985]">
+                        <i class="fa-solid fa-rocket"></i>
+                        <span class="font-semibold">Deploy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="max-w-screen-xl mx-auto px-6 pt-16 pb-12">
+        <div class="max-w-2xl">
+            <div class="inline-flex items-center gap-x-2 px-3 py-1 rounded-3xl bg-zinc-900 border border-zinc-800 text-xs mb-6">
+                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span class="text-emerald-400 font-medium">Android-ready • Works great in landscape</span>
+            </div>
+            
+            <h1 class="font-display text-6xl tracking-tighter leading-none">Master practical<br>AI literacy.</h1>
+            <p class="mt-4 text-xl text-zinc-400">An interactive course disguised as a game. Learn how real AI systems work through hands-on demos.</p>
+            
+            <div class="flex items-center gap-x-4 mt-8">
+                <button onclick="document.getElementById('demos').scrollIntoView({ behavior: 'smooth' })" 
+                        class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 transition-colors rounded-3xl font-semibold flex items-center gap-x-3 text-lg">
+                    Start learning <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <button onclick="window.scrollTo({top: document.getElementById('concepts').offsetTop - 80, behavior:'smooth'})" 
+                        class="px-6 py-3.5 border border-zinc-700 hover:bg-zinc-900 transition-colors rounded-3xl font-medium">
+                    Browse concepts
+                </button>
+            </div>
+            
+            <div class="mt-8 flex items-center gap-x-8 text-sm">
+                <div class="flex -space-x-2">
+                    <div class="w-7 h-7 bg-zinc-700 rounded-full border border-zinc-800"></div>
+                    <div class="w-7 h-7 bg-zinc-700 rounded-full border border-zinc-800"></div>
+                    <div class="w-7 h-7 bg-zinc-700 rounded-full border border-zinc-800"></div>
+                </div>
+                <div class="text-zinc-500 text-sm">Used by 2,400+ learners</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Demos -->
+    <div id="demos" class="max-w-screen-xl mx-auto px-6 pb-16">
+        <div class="flex items-end justify-between mb-6">
+            <div>
+                <span class="text-indigo-400 text-sm font-semibold tracking-wider">INTERACTIVE MODULES</span>
+                <h2 class="font-display text-4xl tracking-tighter">Try it yourself</h2>
+            </div>
+            <div class="text-xs text-zinc-500">Tap any card to begin</div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            <!-- Demo 1: Prompt Playground -->
+            <div onclick="startPromptDemo()" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group">
+                <div class="flex justify-between items-start">
+                    <div class="w-12 h-12 bg-emerald-900/30 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-comment-dots text-emerald-400 text-3xl"></i>
+                    </div>
+                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-emerald-900/40 text-emerald-400 font-mono">LEVEL 1</div>
+                </div>
+                <div class="mt-6">
+                    <div class="font-semibold text-xl">Prompt Engineering Lab</div>
+                    <div class="text-zinc-400 mt-1 text-sm">Craft prompts that actually work. See how small changes dramatically affect AI output.</div>
+                </div>
+                <div class="mt-8 flex items-center text-xs text-emerald-400 font-medium group-hover:gap-x-2 transition-all">
+                    OPEN LAB <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                </div>
+            </div>
+            
+            <!-- Demo 2: Decision Tree -->
+            <div onclick="startDecisionDemo()" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group">
+                <div class="flex justify-between items-start">
+                    <div class="w-12 h-12 bg-amber-900/30 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-project-diagram text-amber-400 text-3xl"></i>
+                    </div>
+                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-amber-900/40 text-amber-400 font-mono">LEVEL 2</div>
+                </div>
+                <div class="mt-6">
+                    <div class="font-semibold text-xl">AI Decision Simulator</div>
+                    <div class="text-zinc-400 mt-1 text-sm">Build a tiny AI that makes decisions. Watch how training data shapes behavior.</div>
+                </div>
+                <div class="mt-8 flex items-center text-xs text-amber-400 font-medium group-hover:gap-x-2 transition-all">
+                    RUN SIMULATION <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                </div>
+            </div>
+            
+            <!-- Demo 3: Bias Detector -->
+            <div onclick="startBiasDemo()" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group">
+                <div class="flex justify-between items-start">
+                    <div class="w-12 h-12 bg-rose-900/30 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-balance-scale text-rose-400 text-3xl"></i>
+                    </div>
+                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-rose-900/40 text-rose-400 font-mono">LEVEL 3</div>
+                </div>
+                <div class="mt-6">
+                    <div class="font-semibold text-xl">Bias &amp; Fairness Lab</div>
+                    <div class="text-zinc-400 mt-1 text-sm">Feed the model real scenarios and discover hidden biases in its reasoning.</div>
+                </div>
+                <div class="mt-8 flex items-center text-xs text-rose-400 font-medium group-hover:gap-x-2 transition-all">
+                    DETECT BIAS <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Concepts -->
+    <div id="concepts" class="max-w-screen-xl mx-auto px-6 py-12 border-t border-zinc-800">
+        <div class="max-w-2xl">
+            <span class="text-indigo-400 text-sm font-semibold tracking-wider">CORE CONCEPTS</span>
+            <h2 class="font-display text-4xl tracking-tighter mt-1">What you'll actually learn</h2>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div class="border border-zinc-800 rounded-3xl p-6">
+                <div class="font-semibold">Prompting that works</div>
+                <div class="text-sm text-zinc-400 mt-3">Chain-of-thought, few-shot, role prompting, and constraint engineering.</div>
+            </div>
+            <div class="border border-zinc-800 rounded-3xl p-6">
+                <div class="font-semibold">How models actually decide</div>
+                <div class="text-sm text-zinc-400 mt-3">Training data, temperature, tokens, and why models hallucinate.</div>
+            </div>
+            <div class="border border-zinc-800 rounded-3xl p-6">
+                <div class="font-semibold">Real-world AI ethics</div>
+                <div class="text-sm text-zinc-400 mt-3">Bias detection, fairness metrics, and responsible deployment.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div id="progress" class="max-w-screen-xl mx-auto px-6 py-12 border-t border-zinc-800">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <span class="text-indigo-400 text-sm font-semibold tracking-wider">YOUR JOURNEY</span>
+                <h2 class="font-display text-4xl tracking-tighter">Progress</h2>
+            </div>
+            <div id="progress-percentage" class="text-5xl font-display font-semibold tabular-nums text-indigo-400">0%</div>
+        </div>
+        
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <div>Prompt Engineering Lab</div>
+                        <div id="progress-1" class="font-mono text-emerald-400">0/3</div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-1" class="h-2 w-0 bg-emerald-400 transition-all rounded-full"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <div>Decision Simulator</div>
+                        <div id="progress-2" class="font-mono text-amber-400">0/3</div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-2" class="h-2 w-0 bg-amber-400 transition-all rounded-full"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <div>Bias &amp; Fairness Lab</div>
+                        <div id="progress-3" class="font-mono text-rose-400">0/3</div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-3" class="h-2 w-0 bg-rose-400 transition-all rounded-full"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="max-w-screen-xl mx-auto px-6 py-12 border-t border-zinc-800 text-xs text-zinc-500 flex justify-between items-center">
+        <div>Built for real learning • Open source • GitHub Pages ready</div>
+        <div class="font-mono">Cursor + Tailwind</div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" onclick="if (event.target.id === 'modal') closeModal()" class="hidden fixed inset-0 bg-black/80 z-[100] flex items-center justify-center">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-lg mx-4 overflow-hidden">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent', '#6366f1');
+        }
+        
+        // Progress system
+        function loadProgress() {
+            const progress = JSON.parse(localStorage.getItem('aieg_progress') || '{"1":0,"2":0,"3":0}');
+            updateProgressUI(progress);
+            return progress;
+        }
+        
+        function saveProgress(level, completed) {
+            const progress = loadProgress();
+            progress[level] = Math.min(3, (progress[level] || 0) + completed);
+            localStorage.setItem('aieg_progress', JSON.stringify(progress));
+            updateProgressUI(progress);
+        }
+        
+        function updateProgressUI(progress) {
+            const total = (progress[1] + progress[2] + progress[3]) / 9 * 100;
+            document.getElementById('progress-percentage').innerText = Math.round(total) + '%';
+            
+            // Level 1
+            document.getElementById('progress-1').innerText = `${progress[1]}/3`;
+            document.getElementById('bar-1').style.width = `${(progress[1]/3)*100}%`;
+            
+            // Level 2
+            document.getElementById('progress-2').innerText = `${progress[2]}/3`;
+            document.getElementById('bar-2').style.width = `${(progress[2]/3)*100}%`;
+            
+            // Level 3
+            document.getElementById('progress-3').innerText = `${progress[3]}/3`;
+            document.getElementById('bar-3').style.width = `${(progress[3]/3)*100}%`;
+        }
+        
+        function resetProgress() {
+            localStorage.removeItem('aieg_progress');
+            location.reload();
+        }
+        
+        // Demo 1: Prompt Playground
+        function startPromptDemo() {
+            const content = `
+                <div class="p-8">
+                    <div class="flex items-center gap-x-3 mb-6">
+                        <i class="fa-solid fa-comment-dots text-emerald-400 text-3xl"></i>
+                        <div>
+                            <div class="font-semibold text-2xl">Prompt Engineering Lab</div>
+                            <div class="text-xs text-emerald-400">LEVEL 1 • 3 challenges</div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="text-sm font-medium mb-2 text-zinc-400">Challenge 1: Make it specific</div>
+                            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                                <div class="text-sm">Write a prompt that makes an AI write a 3-sentence story about a robot learning to paint.</div>
+                                <textarea id="prompt1" class="mt-3 w-full bg-zinc-900 border border-zinc-700 rounded-2xl p-4 text-sm h-20" placeholder="Your prompt here..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <button onclick="checkPromptDemo()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Submit &amp; Score</button>
+                    </div>
+                </div>
+            `;
+            showModal(content);
+        }
+        
+        function checkPromptDemo() {
+            const val = document.getElementById('prompt1').value.trim();
+            if (!val) return alert("Write something first!");
+            
+            const score = Math.min(3, Math.max(1, Math.floor(val.length / 25)));
+            saveProgress(1, 1);
+            
+            const result = `
+                <div class="p-8 text-center">
+                    <div class="text-emerald-400 text-6xl mb-4"><i class="fa-solid fa-check-circle"></i></div>
+                    <div class="text-2xl font-semibold">Good start!</div>
+                    <div class="text-zinc-400 mt-2">You scored <span class="font-mono text-emerald-400">${score}/3</span> points.</div>
+                    
+                    <div class="mt-8 text-left text-sm bg-zinc-950 p-5 rounded-2xl border border-zinc-800">
+                        <div class="font-medium mb-2">Tip for next time:</div>
+                        <div class="text-zinc-400">Add constraints like "use exactly 3 sentences" or "in the style of Studio Ghibli".</div>
+                    </div>
+                    
+                    <button onclick="closeModal(); startPromptDemo()" class="mt-6 px-8 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-3xl text-sm font-medium">Try another challenge</button>
+                </div>
+            `;
+            document.getElementById('modal-content').innerHTML = result;
+        }
+        
+        // Demo 2: Decision Simulator
+        function startDecisionDemo() {
+            const content = `
+                <div class="p-8">
+                    <div class="flex items-center gap-x-3 mb-6">
+                        <i class="fa-solid fa-project-diagram text-amber-400 text-3xl"></i>
+                        <div>
+                            <div class="font-semibold text-2xl">Decision Simulator</div>
+                            <div class="text-xs text-amber-400">LEVEL 2</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-sm text-zinc-400 mb-3">Train a tiny AI to decide: Should we approve this loan?</div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div onclick="makeDecision(1)" class="cursor-pointer border border-zinc-700 hover:border-amber-400 transition-colors p-4 rounded-2xl text-center">
+                                <div class="font-medium">Approve</div>
+                            </div>
+                            <div onclick="makeDecision(0)" class="cursor-pointer border border-zinc-700 hover:border-amber-400 transition-colors p-4 rounded-2xl text-center">
+                                <div class="font-medium">Deny</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-[10px] text-center text-zinc-500">The model learns from your choices. Try 3 decisions.</div>
+                </div>
+            `;
+            showModal(content);
+        }
+        
+        let decisionCount = 0;
+        
+        function makeDecision(choice) {
+            decisionCount++;
+            saveProgress(2, 1);
+            
+            const feedback = choice === 1 
+                ? "Approved. The model now slightly favors higher income applicants."
+                : "Denied. The model now weighs credit score more heavily.";
+            
+            if (decisionCount >= 3) {
+                const resultHTML = `
+                    <div class="p-8 text-center">
+                        <div class="text-amber-400"><i class="fa-solid fa-check-double text-5xl"></i></div>
+                        <div class="mt-4 font-semibold">Training complete</div>
+                        <div class="text-sm text-zinc-400 mt-2">You trained the model with 3 decisions. This is how real AI systems learn from human feedback.</div>
+                        
+                        <button onclick="closeModal()" class="mt-8 w-full py-3.5 bg-amber-600 rounded-3xl font-semibold">Finish level</button>
+                    </div>
+                `;
+                document.getElementById('modal-content').innerHTML = resultHTML;
+                decisionCount = 0;
+            } else {
+                alert(feedback + ` (${decisionCount}/3)`);
+            }
+        }
+        
+        // Demo 3: Bias Lab
+        function startBiasDemo() {
+            const content = `
+                <div class="p-8">
+                    <div class="flex items-center gap-x-3 mb-6">
+                        <i class="fa-solid fa-balance-scale text-rose-400 text-3xl"></i>
+                        <div>
+                            <div class="font-semibold text-2xl">Bias Detector</div>
+                            <div class="text-xs text-rose-400">LEVEL 3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm mb-4">The AI is reviewing job applicants. Spot the bias:</div>
+                    
+                    <div class="space-y-3">
+                        <div onclick="detectBias(this, true)" class="cursor-pointer p-4 border border-zinc-700 hover:border-rose-400 rounded-2xl flex justify-between items-center">
+                            <div>"Applicant #47 has a strong resume but went to a state school."</div>
+                            <div class="text-xs px-3 py-1 rounded bg-rose-900/40 text-rose-400">BIASED</div>
+                        </div>
+                        <div onclick="detectBias(this, false)" class="cursor-pointer p-4 border border-zinc-700 hover:border-rose-400 rounded-2xl flex justify-between items-center">
+                            <div>"Applicant #12 has 8 years experience in similar roles."</div>
+                            <div class="text-xs px-3 py-1 rounded bg-emerald-900/40 text-emerald-400">NEUTRAL</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            showModal(content);
+        }
+        
+        function detectBias(element, isBiased) {
+            if (isBiased) {
+                element.style.borderColor = '#f43f5e';
+                saveProgress(3, 1);
+                setTimeout(() => {
+                    const result = `
+                        <div class="p-8 text-center">
+                            <div class="text-rose-400 text-5xl mb-4"><i class="fa-solid fa-exclamation-triangle"></i></div>
+                            <div class="font-semibold">Bias detected!</div>
+                            <div class="text-sm text-zinc-400 mt-2">The model was penalizing applicants based on school prestige rather than skill. This is a classic training data bias.</div>
+                            
+                            <button onclick="closeModal()" class="mt-8 px-8 py-3.5 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Continue</button>
+                        </div>
+                    `;
+                    document.getElementById('modal-content').innerHTML = result;
+                }, 800);
+            } else {
+                element.style.borderColor = '#10b981';
+                setTimeout(() => alert("Correct! This one is neutral."), 200);
+            }
+        }
+        
+        function showModal(html) {
+            document.getElementById('modal-content').innerHTML = html;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        
+        // GitHub Pages deploy (one-phrase style)
+        function deployToGitHubPages() {
+            const btns = document.querySelectorAll('button');
+            const originalTexts = [];
+            
+            btns.forEach((btn, i) => {
+                originalTexts[i] = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Deploying...`;
+            });
+            
+            setTimeout(() => {
+                alert("✅ Ready for GitHub Pages!\n\n1. Push this folder to GitHub\n2. Enable Pages in repo settings\n3. Your app is now live on the web + installable on Android.");
+                
+                btns.forEach((btn, i) => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalTexts[i];
+                });
+            }, 1400);
+        }
+        
+        // Keyboard support
+        function setupKeyboard() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === "?" && document.activeElement.tagName === "BODY") {
+                    e.preventDefault();
+                    document.getElementById('demos').scrollIntoView({behavior: 'smooth'});
+                }
+            });
+        }
+        
+        // Init
+        function init() {
+            initializeTailwind();
+            loadProgress();
+            setupKeyboard();
+            
+            // Make it feel native on mobile
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                document.documentElement.style.setProperty('--accent', '#6366f1');
+            }
+            
+            // Easter egg
+            console.log('%c[AI Education Game] Cursor-ready. Type window.resetProgress() to reset.', 'color:#3f3f46');
+        }
+        
+        window.onload = init;
+        window.resetProgress = resetProgress;
+    </script>
+</body>
+</html>
