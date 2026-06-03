@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Education Game • Practical AI Literacy</title>
+    <meta name="description" content="Interactive AI literacy course — prompting, decisions, bias, and hallucinations.">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AIEG">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -48,6 +56,25 @@
         .metric {
             font-variant-numeric: tabular-nums;
         }
+
+        #modal-content {
+            max-height: min(85vh, 720px);
+            overflow-y: auto;
+        }
+
+        .step-dot-active-emerald { background-color: #34d399; }
+        .step-dot-active-amber { background-color: #fbbf24; }
+        .step-dot-active-rose { background-color: #fb7185; }
+        .step-dot-active-sky { background-color: #38bdf8; }
+
+        .demo-card-locked {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .demo-card-locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
@@ -61,7 +88,7 @@
                     </div>
                     <div>
                         <span class="font-display text-2xl font-semibold tracking-tighter">AIEG</span>
-                        <span class="text-xs text-zinc-500 ml-1.5 font-mono">v0.1</span>
+                        <span class="text-xs text-zinc-500 ml-1.5 font-mono">v0.4</span>
                     </div>
                 </div>
                 
@@ -92,16 +119,17 @@
         <div class="max-w-2xl">
             <div class="inline-flex items-center gap-x-2 px-3 py-1 rounded-3xl bg-zinc-900 border border-zinc-800 text-xs mb-6">
                 <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span class="text-emerald-400 font-medium">Android-ready • Works great in landscape</span>
+                <span class="text-emerald-400 font-medium">Installable app • Works offline (shell) • Landscape-friendly</span>
             </div>
             
             <h1 class="font-display text-6xl tracking-tighter leading-none">Master practical<br>AI literacy.</h1>
             <p class="mt-4 text-xl text-zinc-400">An interactive course disguised as a game. Learn how real AI systems work through hands-on demos.</p>
             
-            <div class="flex items-center gap-x-4 mt-8">
-                <button onclick="document.getElementById('demos').scrollIntoView({ behavior: 'smooth' })" 
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-3 mt-8">
+                <button id="hero-continue-btn" onclick="continueLearning()" 
                         class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 transition-colors rounded-3xl font-semibold flex items-center gap-x-3 text-lg">
-                    Start learning <i class="fa-solid fa-arrow-right"></i>
+                    <span id="hero-continue-label">Start learning</span>
+                    <i id="hero-continue-icon" class="fa-solid fa-arrow-right"></i>
                 </button>
                 <button onclick="window.scrollTo({top: document.getElementById('concepts').offsetTop - 80, behavior:'smooth'})" 
                         class="px-6 py-3.5 border border-zinc-700 hover:bg-zinc-900 transition-colors rounded-3xl font-medium">
@@ -109,14 +137,7 @@
                 </button>
             </div>
             
-            <div class="mt-8 flex items-center gap-x-8 text-sm">
-                <div class="flex -space-x-2">
-                    <div class="w-7 h-7 bg-zinc-700 rounded-full border border-zinc-800"></div>
-                    <div class="w-7 h-7 bg-zinc-700 rounded-full border border-zinc-800"></div>
-                    <div class="w-7 h-7 bg-zinc-700 rounded-full border border-zinc-800"></div>
-                </div>
-                <div class="text-zinc-500 text-sm">Used by 2,400+ learners</div>
-            </div>
+            <p id="hero-path-hint" class="mt-4 text-sm text-zinc-500">Follow the path: Prompt Lab → Decision Simulator → Bias Lab → Hallucination Lab</p>
         </div>
     </div>
 
@@ -127,14 +148,14 @@
                 <span class="text-indigo-400 text-sm font-semibold tracking-wider">INTERACTIVE MODULES</span>
                 <h2 class="font-display text-4xl tracking-tighter">Try it yourself</h2>
             </div>
-            <div class="text-xs text-zinc-500">Tap any card to begin</div>
+            <div class="text-xs text-zinc-500">3 steps per module • resumes where you left off</div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             
-            <!-- Demo 1: Prompt Playground -->
-            <div onclick="startPromptDemo()" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group">
-                <div class="flex justify-between items-start">
+            <!-- Demo 1 -->
+            <div id="card-module-1" data-level="1" onclick="openModule(1)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
+                <div id="card-badge-1" class="flex justify-between items-start">
                     <div class="w-12 h-12 bg-emerald-900/30 rounded-2xl flex items-center justify-center">
                         <i class="fa-solid fa-comment-dots text-emerald-400 text-3xl"></i>
                     </div>
@@ -144,14 +165,14 @@
                     <div class="font-semibold text-xl">Prompt Engineering Lab</div>
                     <div class="text-zinc-400 mt-1 text-sm">Craft prompts that actually work. See how small changes dramatically affect AI output.</div>
                 </div>
-                <div class="mt-8 flex items-center text-xs text-emerald-400 font-medium group-hover:gap-x-2 transition-all">
+                <div id="card-cta-1" class="mt-8 flex items-center text-xs text-emerald-400 font-medium group-hover:gap-x-2 transition-all">
                     OPEN LAB <i class="fa-solid fa-arrow-right ml-1.5"></i>
                 </div>
             </div>
             
-            <!-- Demo 2: Decision Tree -->
-            <div onclick="startDecisionDemo()" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group">
-                <div class="flex justify-between items-start">
+            <!-- Demo 2 -->
+            <div id="card-module-2" data-level="2" onclick="openModule(2)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
+                <div id="card-badge-2" class="flex justify-between items-start">
                     <div class="w-12 h-12 bg-amber-900/30 rounded-2xl flex items-center justify-center">
                         <i class="fa-solid fa-project-diagram text-amber-400 text-3xl"></i>
                     </div>
@@ -161,14 +182,14 @@
                     <div class="font-semibold text-xl">AI Decision Simulator</div>
                     <div class="text-zinc-400 mt-1 text-sm">Build a tiny AI that makes decisions. Watch how training data shapes behavior.</div>
                 </div>
-                <div class="mt-8 flex items-center text-xs text-amber-400 font-medium group-hover:gap-x-2 transition-all">
+                <div id="card-cta-2" class="mt-8 flex items-center text-xs text-amber-400 font-medium group-hover:gap-x-2 transition-all">
                     RUN SIMULATION <i class="fa-solid fa-arrow-right ml-1.5"></i>
                 </div>
             </div>
             
-            <!-- Demo 3: Bias Detector -->
-            <div onclick="startBiasDemo()" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group">
-                <div class="flex justify-between items-start">
+            <!-- Demo 3 -->
+            <div id="card-module-3" data-level="3" onclick="openModule(3)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
+                <div id="card-badge-3" class="flex justify-between items-start">
                     <div class="w-12 h-12 bg-rose-900/30 rounded-2xl flex items-center justify-center">
                         <i class="fa-solid fa-balance-scale text-rose-400 text-3xl"></i>
                     </div>
@@ -178,8 +199,25 @@
                     <div class="font-semibold text-xl">Bias &amp; Fairness Lab</div>
                     <div class="text-zinc-400 mt-1 text-sm">Feed the model real scenarios and discover hidden biases in its reasoning.</div>
                 </div>
-                <div class="mt-8 flex items-center text-xs text-rose-400 font-medium group-hover:gap-x-2 transition-all">
+                <div id="card-cta-3" class="mt-8 flex items-center text-xs text-rose-400 font-medium group-hover:gap-x-2 transition-all">
                     DETECT BIAS <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                </div>
+            </div>
+
+            <!-- Demo 4 -->
+            <div id="card-module-4" data-level="4" onclick="openModule(4)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
+                <div id="card-badge-4" class="flex justify-between items-start">
+                    <div class="w-12 h-12 bg-sky-900/30 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-ghost text-sky-400 text-3xl"></i>
+                    </div>
+                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-sky-900/40 text-sky-400 font-mono">LEVEL 4</div>
+                </div>
+                <div class="mt-6">
+                    <div class="font-semibold text-xl">Hallucination &amp; Confidence Lab</div>
+                    <div class="text-zinc-400 mt-1 text-sm">Same prompt, two answers — learn which output to trust and how to verify claims.</div>
+                </div>
+                <div id="card-cta-4" class="mt-8 flex items-center text-xs text-sky-400 font-medium group-hover:gap-x-2 transition-all">
+                    SPOT HALLUCINATIONS <i class="fa-solid fa-arrow-right ml-1.5"></i>
                 </div>
             </div>
         </div>
@@ -192,18 +230,22 @@
             <h2 class="font-display text-4xl tracking-tighter mt-1">What you'll actually learn</h2>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-8">
             <div class="border border-zinc-800 rounded-3xl p-6">
                 <div class="font-semibold">Prompting that works</div>
                 <div class="text-sm text-zinc-400 mt-3">Chain-of-thought, few-shot, role prompting, and constraint engineering.</div>
             </div>
             <div class="border border-zinc-800 rounded-3xl p-6">
                 <div class="font-semibold">How models actually decide</div>
-                <div class="text-sm text-zinc-400 mt-3">Training data, temperature, tokens, and why models hallucinate.</div>
+                <div class="text-sm text-zinc-400 mt-3">Training data, temperature, tokens, and weighted features.</div>
             </div>
             <div class="border border-zinc-800 rounded-3xl p-6">
                 <div class="font-semibold">Real-world AI ethics</div>
                 <div class="text-sm text-zinc-400 mt-3">Bias detection, fairness metrics, and responsible deployment.</div>
+            </div>
+            <div class="border border-zinc-800 rounded-3xl p-6">
+                <div class="font-semibold">Hallucinations &amp; trust</div>
+                <div class="text-sm text-zinc-400 mt-3">Why fluent text lies, spotting fake facts, and verification habits.</div>
             </div>
         </div>
     </div>
@@ -218,6 +260,27 @@
             <div id="progress-percentage" class="text-5xl font-display font-semibold tabular-nums text-indigo-400">0%</div>
         </div>
         
+        <div id="course-complete-panel" class="hidden mb-6 bg-gradient-to-br from-indigo-950/80 to-zinc-900 border border-indigo-800/50 rounded-3xl p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                <div>
+                    <div class="text-indigo-400 text-sm font-semibold tracking-wider">COURSE COMPLETE</div>
+                    <div class="font-display text-2xl tracking-tight mt-1">You finished all 12 steps</div>
+                    <p class="text-sm text-zinc-400 mt-2">View your certificate and recap checklist.</p>
+                </div>
+                <button onclick="showCourseCompleteModal()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-3xl font-semibold text-sm shrink-0">
+                    View certificate
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+            <label class="flex items-center gap-3 cursor-pointer text-zinc-400 hover:text-zinc-300">
+                <input type="checkbox" id="unlock-all-toggle" onchange="toggleUnlockAll(this.checked)" class="rounded border-zinc-600 bg-zinc-900 text-indigo-600 focus:ring-indigo-500">
+                <span>Classroom mode — unlock all levels</span>
+            </label>
+            <span id="path-status-text" class="text-xs text-zinc-500"></span>
+        </div>
+
         <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
             <div class="space-y-6">
                 <div>
@@ -241,6 +304,30 @@
                     </div>
                     <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-3" class="h-2 w-0 bg-rose-400 transition-all rounded-full"></div></div>
                 </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <div>Hallucination &amp; Confidence Lab</div>
+                        <div id="progress-4" class="font-mono text-sky-400">0/3</div>
+                    </div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-4" class="h-2 w-0 bg-sky-400 transition-all rounded-full"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Install banner (PWA) -->
+    <div id="install-banner" class="hidden fixed bottom-4 left-4 right-4 z-[90] max-w-md mx-auto">
+        <div class="bg-zinc-900 border border-indigo-700/60 rounded-3xl p-4 shadow-2xl flex items-start gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-download text-white"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="font-semibold text-sm">Install AIEG</div>
+                <p class="text-xs text-zinc-400 mt-0.5">Add to your home screen for quick access and offline shell.</p>
+                <div class="flex gap-2 mt-3">
+                    <button onclick="promptInstall()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xs font-semibold">Install</button>
+                    <button onclick="dismissInstallBanner()" class="px-4 py-2 text-xs text-zinc-500 hover:text-zinc-300">Not now</button>
+                </div>
             </div>
         </div>
     </div>
@@ -253,274 +340,1130 @@
 
     <!-- Modals -->
     <div id="modal" onclick="if (event.target.id === 'modal') closeModal()" class="hidden fixed inset-0 bg-black/80 z-[100] flex items-center justify-center">
-        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-lg mx-4 overflow-hidden">
-            <div id="modal-content"></div>
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-lg mx-4 overflow-hidden flex flex-col max-h-[90vh]">
+            <div id="modal-content" class="overflow-y-auto"></div>
         </div>
     </div>
 
     <script>
-        // Tailwind script
         function initializeTailwind() {
             document.documentElement.style.setProperty('--accent', '#6366f1');
         }
-        
-        // Progress system
+
+        const MODULE_COUNT = 4;
+        const STEPS_PER_MODULE = 3;
+        const TOTAL_STEPS = MODULE_COUNT * STEPS_PER_MODULE;
+
+        const MODULE_META = {
+            1: {
+                name: 'Prompt Engineering Lab',
+                icon: 'fa-comment-dots',
+                text: 'text-emerald-400',
+                btn: 'bg-emerald-600 hover:bg-emerald-500',
+                start: 'startPromptDemo',
+                cardLabel: 'OPEN LAB'
+            },
+            2: {
+                name: 'Decision Simulator',
+                icon: 'fa-project-diagram',
+                text: 'text-amber-400',
+                btn: 'bg-amber-600 hover:bg-amber-500',
+                start: 'startDecisionDemo',
+                cardLabel: 'RUN SIMULATION'
+            },
+            3: {
+                name: 'Bias & Fairness Lab',
+                icon: 'fa-balance-scale',
+                text: 'text-rose-400',
+                btn: 'bg-rose-600 hover:bg-rose-500',
+                start: 'startBiasDemo',
+                cardLabel: 'DETECT BIAS'
+            },
+            4: {
+                name: 'Hallucination & Confidence Lab',
+                icon: 'fa-ghost',
+                text: 'text-sky-400',
+                btn: 'bg-sky-600 hover:bg-sky-500',
+                start: 'startHallucinationDemo',
+                cardLabel: 'SPOT HALLUCINATIONS'
+            }
+        };
+
+        const MODULE_ACCENT = { 1: 'emerald', 2: 'amber', 3: 'rose', 4: 'sky' };
+        const CARD_CTA_COLOR = { 1: 'text-emerald-400', 2: 'text-amber-400', 3: 'text-rose-400', 4: 'text-sky-400' };
+        const CARD_CTA_DIM = { 1: 'text-emerald-400/70', 2: 'text-amber-400/70', 3: 'text-rose-400/70', 4: 'text-sky-400/70' };
+        const PROGRESS_BAR_COLOR = { 1: 'bg-emerald-400', 2: 'bg-amber-400', 3: 'bg-rose-400', 4: 'bg-sky-400' };
+        const PROGRESS_TEXT_COLOR = { 1: 'text-emerald-400', 2: 'text-amber-400', 3: 'text-rose-400', 4: 'text-sky-400' };
+
+        let decisionSession = null;
+        let biasPractice = null;
+        let hallucinationPractice = null;
+        let deferredInstallPrompt = null;
+
+        function defaultProgress() {
+            return { 1: 0, 2: 0, 3: 0, 4: 0 };
+        }
+
+        function normalizeProgress(raw) {
+            const progress = { ...defaultProgress(), ...raw };
+            for (let level = 1; level <= MODULE_COUNT; level++) {
+                progress[level] = Math.min(STEPS_PER_MODULE, Math.max(0, progress[level] || 0));
+            }
+            return progress;
+        }
+
         function loadProgress() {
-            const progress = JSON.parse(localStorage.getItem('aieg_progress') || '{"1":0,"2":0,"3":0}');
+            let raw;
+            try {
+                raw = JSON.parse(localStorage.getItem('aieg_progress') || 'null');
+            } catch (_) {
+                raw = null;
+            }
+            const progress = normalizeProgress(raw || defaultProgress());
             updateProgressUI(progress);
             return progress;
         }
-        
-        function saveProgress(level, completed) {
+
+        function getCompletedSteps(level) {
+            return loadProgress()[level] || 0;
+        }
+
+        function markStepComplete(level, step) {
             const progress = loadProgress();
-            progress[level] = Math.min(3, (progress[level] || 0) + completed);
+            progress[level] = Math.min(3, Math.max(progress[level] || 0, step));
             localStorage.setItem('aieg_progress', JSON.stringify(progress));
             updateProgressUI(progress);
+            checkCourseComplete(progress);
         }
-        
+
+        function loadSettings() {
+            try {
+                return JSON.parse(localStorage.getItem('aieg_settings') || '{"unlockAll":false}');
+            } catch (_) {
+                return { unlockAll: false };
+            }
+        }
+
+        function saveSettings(settings) {
+            localStorage.setItem('aieg_settings', JSON.stringify(settings));
+        }
+
+        function isLevelComplete(progress, level) {
+            return (progress[level] || 0) >= 3;
+        }
+
+        function isCourseComplete(progress) {
+            for (let level = 1; level <= MODULE_COUNT; level++) {
+                if (!isLevelComplete(progress, level)) return false;
+            }
+            return true;
+        }
+
+        function isModuleUnlocked(level, progress) {
+            if (loadSettings().unlockAll) return true;
+            if (level === 1) return true;
+            return isLevelComplete(progress, level - 1);
+        }
+
+        function getNextModule(progress) {
+            for (let level = 1; level <= MODULE_COUNT; level++) {
+                if (!isModuleUnlocked(level, progress)) continue;
+                if (!isLevelComplete(progress, level)) return level;
+            }
+            return null;
+        }
+
+        function getUnlockRequirement(level) {
+            if (level <= 1) return '';
+            const prev = MODULE_META[level - 1];
+            return 'Complete ' + prev.name + ' (3/3) to unlock.';
+        }
+
+        function openModule(level) {
+            const progress = loadProgress();
+            if (!isModuleUnlocked(level, progress)) {
+                showLockedModal(level);
+                return;
+            }
+            if (level === 1) startPromptDemo();
+            else if (level === 2) startDecisionDemo();
+            else if (level === 3) startBiasDemo();
+            else startHallucinationDemo();
+        }
+
+        function showLockedModal(level) {
+            const prev = MODULE_META[level - 1];
+            showModal(`
+                <div class="p-8 text-center">
+                    <div class="text-zinc-500 text-5xl mb-4"><i class="fa-solid fa-lock"></i></div>
+                    <div class="text-xl font-semibold">Level ${level} is locked</div>
+                    <p class="text-sm text-zinc-400 mt-3">${getUnlockRequirement(level)}</p>
+                    <p class="text-xs text-zinc-500 mt-2">Finish <span class="${prev.text}">${prev.name}</span> first, or enable classroom mode below.</p>
+                    <button onclick="closeModal(); document.getElementById('progress').scrollIntoView({behavior:'smooth'})" class="mt-6 w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">View progress</button>
+                    <button onclick="continueLearning()" class="mt-3 w-full py-3 text-sm text-indigo-400 hover:text-indigo-300">Continue current level</button>
+                </div>
+            `);
+        }
+
+        function continueLearning() {
+            const progress = loadProgress();
+            const next = getNextModule(progress);
+            if (next === null) {
+                showCourseCompleteModal();
+                return;
+            }
+            openModule(next);
+        }
+
+        function toggleUnlockAll(checked) {
+            saveSettings({ unlockAll: !!checked });
+            refreshLearningPath();
+        }
+
+        function refreshLearningPath() {
+            const progress = normalizeProgress(JSON.parse(localStorage.getItem('aieg_progress') || 'null') || defaultProgress());
+            const next = getNextModule(progress);
+            const complete = isCourseComplete(progress);
+            const settings = loadSettings();
+
+            const toggle = document.getElementById('unlock-all-toggle');
+            if (toggle) toggle.checked = settings.unlockAll;
+
+            const panel = document.getElementById('course-complete-panel');
+            if (panel) panel.classList.toggle('hidden', !complete);
+
+            const pathStatus = document.getElementById('path-status-text');
+            if (pathStatus) {
+                if (complete) pathStatus.textContent = 'All modules complete';
+                else if (next) pathStatus.textContent = 'Next up: ' + MODULE_META[next].name;
+                else pathStatus.textContent = '';
+            }
+
+            const label = document.getElementById('hero-continue-label');
+            const icon = document.getElementById('hero-continue-icon');
+            const hint = document.getElementById('hero-path-hint');
+            if (label && icon) {
+                if (complete) {
+                    label.textContent = 'View certificate';
+                    icon.className = 'fa-solid fa-certificate';
+                } else if (next && (progress[next] || 0) > 0) {
+                    label.textContent = 'Continue learning';
+                    icon.className = 'fa-solid fa-arrow-right';
+                } else {
+                    label.textContent = 'Start learning';
+                    icon.className = 'fa-solid fa-arrow-right';
+                }
+            }
+            if (hint) {
+                if (complete) {
+                    hint.textContent = 'You completed all 12 steps. Share your certificate below.';
+                } else if (next) {
+                    const step = Math.min((progress[next] || 0) + 1, 3);
+                    hint.textContent = 'Up next: ' + MODULE_META[next].name + ' (step ' + step + ' of 3)';
+                } else {
+                    hint.textContent = 'Follow the path: Prompt → Decision → Bias → Hallucination';
+                }
+            }
+
+            for (let level = 1; level <= MODULE_COUNT; level++) {
+                const card = document.getElementById('card-module-' + level);
+                const cta = document.getElementById('card-cta-' + level);
+                if (!card || !cta) return;
+
+                const unlocked = isModuleUnlocked(level, progress);
+                const done = isLevelComplete(progress, level);
+                const isNext = next === level;
+
+                card.classList.toggle('demo-card-locked', !unlocked);
+                card.classList.toggle('border-indigo-500/60', isNext && unlocked && !done);
+                card.classList.toggle('border-zinc-800', !(isNext && unlocked && !done));
+
+                if (!unlocked) {
+                    cta.innerHTML = '<i class="fa-solid fa-lock mr-1.5"></i> LOCKED';
+                    cta.className = 'mt-8 flex items-center text-xs text-zinc-500 font-medium';
+                } else if (done) {
+                    cta.innerHTML = 'COMPLETE <i class="fa-solid fa-check ml-1.5"></i>';
+                    cta.className = 'mt-8 flex items-center text-xs ' + CARD_CTA_DIM[level] + ' font-medium';
+                } else if (isNext) {
+                    const stepNum = Math.min((progress[level] || 0) + 1, STEPS_PER_MODULE);
+                    cta.innerHTML = 'CONTINUE — STEP ' + stepNum + '/3 <i class="fa-solid fa-arrow-right ml-1.5"></i>';
+                    cta.className = 'mt-8 flex items-center text-xs ' + CARD_CTA_COLOR[level] + ' font-semibold group-hover:gap-x-2 transition-all';
+                } else {
+                    cta.innerHTML = MODULE_META[level].cardLabel + ' <i class="fa-solid fa-arrow-right ml-1.5"></i>';
+                    cta.className = 'mt-8 flex items-center text-xs ' + CARD_CTA_COLOR[level] + ' font-medium group-hover:gap-x-2 transition-all';
+                }
+            }
+        }
+
+        function showCourseCompleteModal() {
+            const prog = loadProgress();
+            const checklist = [];
+            for (let level = 1; level <= MODULE_COUNT; level++) {
+                checklist.push({ label: MODULE_META[level].name, ok: isLevelComplete(prog, level) });
+            }
+            const rows = checklist.map(item => `
+                <li class="flex items-center gap-3 text-sm">
+                    <i class="fa-solid ${item.ok ? 'fa-circle-check text-emerald-400' : 'fa-circle text-zinc-600'}"></i>
+                    <span class="${item.ok ? 'text-zinc-300' : 'text-zinc-500'}">${item.label}</span>
+                </li>
+            `).join('');
+
+            showModal(`
+                <div class="p-8">
+                    <div class="text-center">
+                        <div id="badge-preview" class="mx-auto w-28 h-28 rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-600 flex flex-col items-center justify-center shadow-lg shadow-indigo-900/40">
+                            <i class="fa-solid fa-robot text-white text-3xl"></i>
+                            <span class="text-[9px] font-mono text-white/90 mt-2 tracking-wider">100%</span>
+                        </div>
+                        <div class="text-2xl font-semibold mt-5">AI Literacy Certificate</div>
+                        <p class="text-sm text-zinc-400 mt-2">You finished all ${TOTAL_STEPS} steps across ${MODULE_COUNT} modules.</p>
+                    </div>
+                    <ul class="mt-6 space-y-2 bg-zinc-950 border border-zinc-800 rounded-2xl p-4">${rows}</ul>
+                    <div class="mt-4 text-xs text-zinc-500 space-y-1">
+                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Write prompts with clear tasks and constraints</p>
+                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> See how training shifts model decisions</p>
+                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Spot bias and fix training data</p>
+                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Detect hallucinations and verify claims</p>
+                    </div>
+                    <button onclick="downloadBadge()" class="mt-6 w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 rounded-3xl font-semibold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download badge
+                    </button>
+                    <button onclick="copyCompletionShare()" class="mt-3 w-full py-3 border border-zinc-700 hover:bg-zinc-800 rounded-3xl text-sm font-medium">Copy share text</button>
+                    <p id="share-copy-feedback" class="hidden text-center text-xs text-emerald-400 mt-2">Copied to clipboard!</p>
+                    <button onclick="closeModal()" class="mt-4 w-full py-2 text-sm text-zinc-500 hover:text-zinc-300">Close</button>
+                </div>
+            `);
+        }
+
+        function checkCourseComplete(progress) {
+            if (!isCourseComplete(progress)) return;
+            refreshLearningPath();
+            if (!localStorage.getItem('aieg_complete_celebrated')) {
+                localStorage.setItem('aieg_complete_celebrated', '1');
+                setTimeout(showCourseCompleteModal, 500);
+            }
+        }
+
+        function downloadBadge() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 400, 400);
+            grad.addColorStop(0, '#4f46e5');
+            grad.addColorStop(1, '#7c3aed');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 400, 400);
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.arc(200, 120, 44, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 32px system-ui, sans-serif';
+            ctx.fillText('AI Literacy', 200, 250);
+            ctx.font = '500 16px system-ui, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.fillText('AI Education Game', 200, 285);
+            ctx.font = '600 14px monospace';
+            ctx.fillText('100% COMPLETE', 200, 320);
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'aieg-ai-literacy-badge.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function copyCompletionShare() {
+            const text = 'I completed the AI Education Game — 100% practical AI literacy (prompting, decisions, bias, and hallucinations).';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const fb = document.getElementById('share-copy-feedback');
+                    if (fb) {
+                        fb.classList.remove('hidden');
+                        setTimeout(() => fb.classList.add('hidden'), 2500);
+                    }
+                }).catch(() => alert(text));
+            } else {
+                alert(text);
+            }
+        }
+
         function updateProgressUI(progress) {
-            const total = (progress[1] + progress[2] + progress[3]) / 9 * 100;
-            document.getElementById('progress-percentage').innerText = Math.round(total) + '%';
-            
-            // Level 1
-            document.getElementById('progress-1').innerText = `${progress[1]}/3`;
-            document.getElementById('bar-1').style.width = `${(progress[1]/3)*100}%`;
-            
-            // Level 2
-            document.getElementById('progress-2').innerText = `${progress[2]}/3`;
-            document.getElementById('bar-2').style.width = `${(progress[2]/3)*100}%`;
-            
-            // Level 3
-            document.getElementById('progress-3').innerText = `${progress[3]}/3`;
-            document.getElementById('bar-3').style.width = `${(progress[3]/3)*100}%`;
+            let sum = 0;
+            for (let level = 1; level <= MODULE_COUNT; level++) sum += progress[level] || 0;
+            document.getElementById('progress-percentage').innerText = Math.round(sum / TOTAL_STEPS * 100) + '%';
+            for (let level = 1; level <= MODULE_COUNT; level++) {
+                const label = document.getElementById('progress-' + level);
+                const bar = document.getElementById('bar-' + level);
+                if (label) label.innerText = progress[level] + '/3';
+                if (bar) bar.style.width = (progress[level] / STEPS_PER_MODULE * 100) + '%';
+            }
+            refreshLearningPath();
         }
-        
+
         function resetProgress() {
             localStorage.removeItem('aieg_progress');
+            localStorage.removeItem('aieg_decision_weights');
+            localStorage.removeItem('aieg_complete_celebrated');
             location.reload();
         }
-        
-        // Demo 1: Prompt Playground
-        function startPromptDemo() {
-            const content = `
-                <div class="p-8">
-                    <div class="flex items-center gap-x-3 mb-6">
-                        <i class="fa-solid fa-comment-dots text-emerald-400 text-3xl"></i>
-                        <div>
-                            <div class="font-semibold text-2xl">Prompt Engineering Lab</div>
-                            <div class="text-xs text-emerald-400">LEVEL 1 • 3 challenges</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <div class="text-sm font-medium mb-2 text-zinc-400">Challenge 1: Make it specific</div>
-                            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
-                                <div class="text-sm">Write a prompt that makes an AI write a 3-sentence story about a robot learning to paint.</div>
-                                <textarea id="prompt1" class="mt-3 w-full bg-zinc-900 border border-zinc-700 rounded-2xl p-4 text-sm h-20" placeholder="Your prompt here..."></textarea>
-                            </div>
-                        </div>
-                        
-                        <button onclick="checkPromptDemo()" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Submit &amp; Score</button>
+
+        function stepBar(currentStep, accent) {
+            const activeMap = {
+                emerald: 'step-dot-active-emerald',
+                amber: 'step-dot-active-amber',
+                rose: 'step-dot-active-rose',
+                sky: 'step-dot-active-sky'
+            };
+            const activeClass = activeMap[accent] || 'step-dot-active-emerald';
+            return [1, 2, 3].map(s => `
+                <div class="h-1.5 flex-1 rounded-full ${s <= currentStep ? activeClass : 'bg-zinc-800'}"></div>
+            `).join('');
+        }
+
+        function moduleHeader(level, step, subtitle) {
+            const m = MODULE_META[level];
+            const accent = MODULE_ACCENT[level];
+            return `
+                <div class="flex items-center gap-x-3 mb-4">
+                    <i class="fa-solid ${m.icon} ${m.text} text-3xl"></i>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-xl truncate">${m.name}</div>
+                        <div class="text-xs ${m.text}">Step ${step} of 3 • ${subtitle}</div>
                     </div>
                 </div>
+                <div class="flex gap-1.5 mb-6">${stepBar(step, accent)}</div>
             `;
-            showModal(content);
         }
-        
-        function checkPromptDemo() {
-            const val = document.getElementById('prompt1').value.trim();
-            if (!val) return alert("Write something first!");
-            
-            const score = Math.min(3, Math.max(1, Math.floor(val.length / 25)));
-            saveProgress(1, 1);
-            
-            const result = `
+
+        function showFeedback(elId, message, type) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            const styles = type === 'success'
+                ? 'bg-emerald-950/80 border-emerald-800 text-emerald-300'
+                : type === 'error'
+                    ? 'bg-rose-950/80 border-rose-800 text-rose-300'
+                    : 'bg-amber-950/80 border-amber-800 text-amber-300';
+            el.className = `text-sm p-3 rounded-2xl border ${styles}`;
+            el.innerHTML = message;
+            el.classList.remove('hidden');
+        }
+
+        function moduleCompleteScreen(level, takeaway) {
+            const m = MODULE_META[level];
+            return `
                 <div class="p-8 text-center">
-                    <div class="text-emerald-400 text-6xl mb-4"><i class="fa-solid fa-check-circle"></i></div>
-                    <div class="text-2xl font-semibold">Good start!</div>
-                    <div class="text-zinc-400 mt-2">You scored <span class="font-mono text-emerald-400">${score}/3</span> points.</div>
-                    
-                    <div class="mt-8 text-left text-sm bg-zinc-950 p-5 rounded-2xl border border-zinc-800">
-                        <div class="font-medium mb-2">Tip for next time:</div>
-                        <div class="text-zinc-400">Add constraints like "use exactly 3 sentences" or "in the style of Studio Ghibli".</div>
+                    <div class="${m.text} text-5xl mb-4"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="text-2xl font-semibold">Level complete</div>
+                    <div class="text-sm text-zinc-400 mt-2">All 3 steps finished. Progress saved.</div>
+                    <div class="mt-6 text-left text-sm bg-zinc-950 p-5 rounded-2xl border border-zinc-800">
+                        <div class="font-medium ${m.text} mb-2">Key takeaway</div>
+                        <div class="text-zinc-400">${takeaway}</div>
                     </div>
-                    
-                    <button onclick="closeModal(); startPromptDemo()" class="mt-6 px-8 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-3xl text-sm font-medium">Try another challenge</button>
+                    <button onclick="closeModal()" class="mt-6 w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">Back to course</button>
+                    <button onclick="${m.start}()" class="mt-3 w-full py-3 text-sm text-zinc-500 hover:text-zinc-300">Review this level</button>
                 </div>
             `;
-            document.getElementById('modal-content').innerHTML = result;
         }
-        
-        // Demo 2: Decision Simulator
-        function startDecisionDemo() {
-            const content = `
+
+        // —— Prompt Lab ——
+        function startPromptDemo() {
+            const done = getCompletedSteps(1);
+            if (done >= 3) {
+                showModal(moduleCompleteScreen(1, 'Strong prompts name the task, set constraints, and give the model enough context to succeed—without relying on length alone.'));
+                return;
+            }
+            if (done < 1) renderPromptStep1();
+            else if (done < 2) renderPromptStep2();
+            else renderPromptStep3();
+        }
+
+        function renderPromptStep1() {
+            showModal(`
                 <div class="p-8">
-                    <div class="flex items-center gap-x-3 mb-6">
-                        <i class="fa-solid fa-project-diagram text-amber-400 text-3xl"></i>
-                        <div>
-                            <div class="font-semibold text-2xl">Decision Simulator</div>
-                            <div class="text-xs text-amber-400">LEVEL 2</div>
+                    ${moduleHeader(1, 1, 'Learn')}
+                    <p class="text-sm text-zinc-400 mb-4">Vague prompts produce vague outputs. Compare these two asks for the same task:</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="bg-zinc-950 border border-rose-900/50 rounded-2xl p-4">
+                            <div class="text-[10px] uppercase tracking-wider text-rose-400 mb-1">Weak</div>
+                            <div class="text-zinc-300">"Write a story about a robot."</div>
+                            <div class="text-zinc-500 mt-2 text-xs">Missing: length, tone, and what the robot does.</div>
+                        </div>
+                        <div class="bg-zinc-950 border border-emerald-900/50 rounded-2xl p-4">
+                            <div class="text-[10px] uppercase tracking-wider text-emerald-400 mb-1">Strong</div>
+                            <div class="text-zinc-300">"Write exactly 3 sentences about a robot learning to paint. Use a warm, curious tone."</div>
+                            <div class="text-zinc-500 mt-2 text-xs">Task + constraint + style = predictable results.</div>
                         </div>
                     </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-sm text-zinc-400 mb-3">Train a tiny AI to decide: Should we approve this loan?</div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div onclick="makeDecision(1)" class="cursor-pointer border border-zinc-700 hover:border-amber-400 transition-colors p-4 rounded-2xl text-center">
-                                <div class="font-medium">Approve</div>
-                            </div>
-                            <div onclick="makeDecision(0)" class="cursor-pointer border border-zinc-700 hover:border-amber-400 transition-colors p-4 rounded-2xl text-center">
-                                <div class="font-medium">Deny</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-[10px] text-center text-zinc-500">The model learns from your choices. Try 3 decisions.</div>
+                    <p class="text-xs text-zinc-500 mt-4">So what? Models follow instructions literally. Specificity is a skill, not magic.</p>
+                    <button onclick="promptStep1Done()" class="mt-6 w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Got it — continue</button>
                 </div>
-            `;
-            showModal(content);
+            `);
         }
-        
-        let decisionCount = 0;
-        
-        function makeDecision(choice) {
-            decisionCount++;
-            saveProgress(2, 1);
-            
-            const feedback = choice === 1 
-                ? "Approved. The model now slightly favors higher income applicants."
-                : "Denied. The model now weighs credit score more heavily.";
-            
-            if (decisionCount >= 3) {
-                const resultHTML = `
-                    <div class="p-8 text-center">
-                        <div class="text-amber-400"><i class="fa-solid fa-check-double text-5xl"></i></div>
-                        <div class="mt-4 font-semibold">Training complete</div>
-                        <div class="text-sm text-zinc-400 mt-2">You trained the model with 3 decisions. This is how real AI systems learn from human feedback.</div>
-                        
-                        <button onclick="closeModal()" class="mt-8 w-full py-3.5 bg-amber-600 rounded-3xl font-semibold">Finish level</button>
+
+        function promptStep1Done() {
+            markStepComplete(1, 1);
+            renderPromptStep2();
+        }
+
+        function renderPromptStep2() {
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(1, 2, 'Practice')}
+                    <p class="text-sm text-zinc-400 mb-4">Which addition best improves this weak prompt?</p>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm mb-4">
+                        "Write a story about a robot learning to paint."
                     </div>
-                `;
-                document.getElementById('modal-content').innerHTML = resultHTML;
-                decisionCount = 0;
+                    <div class="space-y-2" id="prompt-practice-options">
+                        <button type="button" onclick="checkPromptPractice('wrong1')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm transition-colors">Make it longer and more creative</button>
+                        <button type="button" onclick="checkPromptPractice('correct')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm transition-colors">Use exactly 3 sentences and a gentle, hopeful tone</button>
+                        <button type="button" onclick="checkPromptPractice('wrong2')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm transition-colors">Write like Shakespeare</button>
+                    </div>
+                    <div id="prompt-practice-feedback" class="hidden mt-4"></div>
+                </div>
+            `);
+        }
+
+        function checkPromptPractice(choice) {
+            const fb = document.getElementById('prompt-practice-feedback');
+            if (choice === 'correct') {
+                markStepComplete(1, 2);
+                showFeedback('prompt-practice-feedback', '<strong>Correct.</strong> Constraints (3 sentences) and tone give the model a clear target—not just "be creative."', 'success');
+                setTimeout(() => renderPromptStep3(), 1400);
+            } else if (choice === 'wrong1') {
+                showFeedback('prompt-practice-feedback', 'Length and "be creative" still leave format and tone undefined.', 'error');
             } else {
-                alert(feedback + ` (${decisionCount}/3)`);
+                showFeedback('prompt-practice-feedback', 'Style alone without length or structure still produces inconsistent outputs.', 'error');
             }
         }
-        
-        // Demo 3: Bias Lab
-        function startBiasDemo() {
-            const content = `
+
+        function renderPromptStep3() {
+            showModal(`
                 <div class="p-8">
-                    <div class="flex items-center gap-x-3 mb-6">
-                        <i class="fa-solid fa-balance-scale text-rose-400 text-3xl"></i>
-                        <div>
-                            <div class="font-semibold text-2xl">Bias Detector</div>
-                            <div class="text-xs text-rose-400">LEVEL 3</div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-sm mb-4">The AI is reviewing job applicants. Spot the bias:</div>
-                    
-                    <div class="space-y-3">
-                        <div onclick="detectBias(this, true)" class="cursor-pointer p-4 border border-zinc-700 hover:border-rose-400 rounded-2xl flex justify-between items-center">
-                            <div>"Applicant #47 has a strong resume but went to a state school."</div>
-                            <div class="text-xs px-3 py-1 rounded bg-rose-900/40 text-rose-400">BIASED</div>
-                        </div>
-                        <div onclick="detectBias(this, false)" class="cursor-pointer p-4 border border-zinc-700 hover:border-rose-400 rounded-2xl flex justify-between items-center">
-                            <div>"Applicant #12 has 8 years experience in similar roles."</div>
-                            <div class="text-xs px-3 py-1 rounded bg-emerald-900/40 text-emerald-400">NEUTRAL</div>
-                        </div>
-                    </div>
+                    ${moduleHeader(1, 3, 'Challenge')}
+                    <p class="text-sm text-zinc-400 mb-3">Write a prompt for: <span class="text-zinc-200">a 3-sentence story about a robot learning to paint.</span></p>
+                    <p class="text-xs text-zinc-500 mb-3">We'll score against a real rubric (task, length, constraint, role/style).</p>
+                    <textarea id="prompt-challenge" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl p-4 text-sm h-28" placeholder="Your prompt here..."></textarea>
+                    <div id="prompt-rubric-feedback" class="hidden mt-4 space-y-2"></div>
+                    <button onclick="checkPromptChallenge()" class="mt-4 w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Submit &amp; score</button>
                 </div>
-            `;
-            showModal(content);
+            `);
         }
-        
-        function detectBias(element, isBiased) {
-            if (isBiased) {
-                element.style.borderColor = '#f43f5e';
-                saveProgress(3, 1);
+
+        function evaluatePromptRubric(text) {
+            const t = text.toLowerCase();
+            return [
+                { key: 'task', label: 'Names the task (robot, paint, story)', ok: /robot|paint|story|art/.test(t) },
+                { key: 'length', label: 'Specifies length (3 sentences)', ok: /\b3\b|three|exactly 3|3 sentence/.test(t) },
+                { key: 'constraint', label: 'Clear constraint or format', ok: /exactly|must|only|no more than|sentence|paragraph|word limit|do not/.test(t) },
+                { key: 'style', label: 'Tone, role, or audience', ok: /tone|style|voice|act as|you are|warm|gentle|curious|audience|for a|writer/.test(t) }
+            ];
+        }
+
+        function checkPromptChallenge() {
+            const val = document.getElementById('prompt-challenge')?.value?.trim() || '';
+            const fb = document.getElementById('prompt-rubric-feedback');
+            if (!val) {
+                fb.className = 'mt-4 space-y-2';
+                fb.innerHTML = '<div class="text-sm p-3 rounded-2xl border bg-amber-950/80 border-amber-800 text-amber-300">Write a prompt before submitting.</div>';
+                fb.classList.remove('hidden');
+                return;
+            }
+            const rubric = evaluatePromptRubric(val);
+            const passed = rubric.filter(r => r.ok).length;
+            const rows = rubric.map(r => `
+                <div class="flex items-start gap-2 text-sm">
+                    <i class="fa-solid ${r.ok ? 'fa-check text-emerald-400' : 'fa-xmark text-zinc-600'} mt-0.5"></i>
+                    <span class="${r.ok ? 'text-zinc-300' : 'text-zinc-500'}">${r.label}</span>
+                </div>
+            `).join('');
+            fb.className = 'mt-4 space-y-2';
+            fb.innerHTML = rows + (passed >= 3
+                ? '<div class="text-sm p-3 rounded-2xl border bg-emerald-950/80 border-emerald-800 text-emerald-300 mt-2"><strong>Passed!</strong> You hit ' + passed + '/4 rubric criteria.</div>'
+                : '<div class="text-sm p-3 rounded-2xl border bg-rose-950/80 border-rose-800 text-rose-300 mt-2">Need at least 3/4 criteria. Add what\'s missing above.</div>');
+            fb.classList.remove('hidden');
+            if (passed >= 3) {
+                markStepComplete(1, 3);
                 setTimeout(() => {
-                    const result = `
-                        <div class="p-8 text-center">
-                            <div class="text-rose-400 text-5xl mb-4"><i class="fa-solid fa-exclamation-triangle"></i></div>
-                            <div class="font-semibold">Bias detected!</div>
-                            <div class="text-sm text-zinc-400 mt-2">The model was penalizing applicants based on school prestige rather than skill. This is a classic training data bias.</div>
-                            
-                            <button onclick="closeModal()" class="mt-8 px-8 py-3.5 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Continue</button>
-                        </div>
-                    `;
-                    document.getElementById('modal-content').innerHTML = result;
-                }, 800);
-            } else {
-                element.style.borderColor = '#10b981';
-                setTimeout(() => alert("Correct! This one is neutral."), 200);
+                    showModal(moduleCompleteScreen(1, 'Strong prompts name the task, set constraints, and give the model enough context to succeed—without relying on length alone.'));
+                }, 1200);
             }
         }
-        
+
+        // —— Decision Simulator ——
+        const LOAN_APPLICANTS = [
+            { name: 'Jordan Lee', income: 48, credit: 710, employment: 3, note: 'Steady job, moderate income' },
+            { name: 'Sam Rivera', income: 92, credit: 590, employment: 6, note: 'High income, weaker credit' },
+            { name: 'Alex Kim', income: 61, credit: 680, employment: 9, note: 'Long employment, mid-range income' }
+        ];
+
+        function startDecisionDemo() {
+            const done = getCompletedSteps(2);
+            if (done >= 3) {
+                showModal(moduleCompleteScreen(2, 'Models learn patterns from your labels. Each approve/deny nudges which features matter most—just like training data shapes real systems.'));
+                return;
+            }
+            if (done < 1) renderDecisionStep1();
+            else if (done < 2) renderDecisionStep2();
+            else renderDecisionStep3();
+        }
+
+        function renderDecisionStep1() {
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(2, 1, 'Learn')}
+                    <p class="text-sm text-zinc-400 mb-4">This loan model scores applicants using weighted features—not magic intuition.</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between"><span class="text-zinc-400">Income</span><span class="font-mono text-amber-400">33%</span></div>
+                        <div class="h-2 bg-zinc-800 rounded-full"><div class="h-2 w-1/3 bg-amber-400 rounded-full"></div></div>
+                        <div class="flex justify-between"><span class="text-zinc-400">Credit score</span><span class="font-mono text-amber-400">33%</span></div>
+                        <div class="h-2 bg-zinc-800 rounded-full"><div class="h-2 w-1/3 bg-amber-400 rounded-full"></div></div>
+                        <div class="flex justify-between"><span class="text-zinc-400">Employment (years)</span><span class="font-mono text-amber-400">34%</span></div>
+                        <div class="h-2 bg-zinc-800 rounded-full"><div class="h-2 w-[34%] bg-amber-400 rounded-full"></div></div>
+                    </div>
+                    <p class="text-xs text-zinc-500 mt-4">So what? When you approve or deny, you're teaching the model which signals to trust more.</p>
+                    <button onclick="decisionStep1Done()" class="mt-6 w-full py-4 bg-amber-600 hover:bg-amber-500 rounded-3xl font-semibold">Start training</button>
+                </div>
+            `);
+        }
+
+        function decisionStep1Done() {
+            markStepComplete(2, 1);
+            decisionSession = {
+                weights: { income: 33, credit: 33, employment: 34 },
+                caseIndex: 0,
+                decisions: []
+            };
+            renderDecisionStep2();
+        }
+
+        function weightBarsHtml(weights) {
+            const rows = [
+                ['Income', weights.income],
+                ['Credit score', weights.credit],
+                ['Employment', weights.employment]
+            ];
+            return rows.map(([label, pct]) => `
+                <div>
+                    <div class="flex justify-between text-xs mb-1"><span class="text-zinc-400">${label}</span><span class="font-mono text-amber-400 metric">${pct}%</span></div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-2 bg-amber-400 rounded-full transition-all duration-500" style="width:${pct}%"></div></div>
+                </div>
+            `).join('');
+        }
+
+        function modelScore(applicant, weights) {
+            const incomeScore = Math.min(100, (applicant.income / 100) * 100);
+            const creditScore = Math.min(100, (applicant.credit / 850) * 100);
+            const empScore = Math.min(100, (applicant.employment / 10) * 100);
+            return (incomeScore * weights.income + creditScore * weights.credit + empScore * weights.employment) / 100;
+        }
+
+        function renderDecisionStep2() {
+            if (!decisionSession) {
+                decisionSession = { weights: { income: 33, credit: 33, employment: 34 }, caseIndex: 0, decisions: [] };
+            }
+            const idx = decisionSession.caseIndex;
+            if (idx >= LOAN_APPLICANTS.length) {
+                markStepComplete(2, 2);
+                localStorage.setItem('aieg_decision_weights', JSON.stringify(decisionSession.weights));
+                renderDecisionStep3();
+                return;
+            }
+            const a = LOAN_APPLICANTS[idx];
+            const score = Math.round(modelScore(a, decisionSession.weights));
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(2, 2, 'Practice')}
+                    <p class="text-sm text-zinc-400 mb-3">Applicant ${idx + 1} of 3 — would <span class="text-amber-400">your model</span> approve?</p>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm mb-4">
+                        <div class="font-semibold text-lg">${a.name}</div>
+                        <div class="text-zinc-500 text-xs mt-1">${a.note}</div>
+                        <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                            <div><div class="text-[10px] text-zinc-500">Income</div><div class="font-mono">$${a.income}k</div></div>
+                            <div><div class="text-[10px] text-zinc-500">Credit</div><div class="font-mono">${a.credit}</div></div>
+                            <div><div class="text-[10px] text-zinc-500">Years employed</div><div class="font-mono">${a.employment}</div></div>
+                        </div>
+                        <div class="mt-3 text-xs text-zinc-500">Model score: <span class="text-amber-400 font-mono">${score}/100</span> (threshold 55)</div>
+                    </div>
+                    <div class="space-y-2 mb-4">${weightBarsHtml(decisionSession.weights)}</div>
+                    <div id="decision-feedback" class="hidden mb-3"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="makeLoanDecision(1)" class="py-4 border border-zinc-700 hover:border-amber-400 rounded-2xl font-medium transition-colors">Approve</button>
+                        <button type="button" onclick="makeLoanDecision(0)" class="py-4 border border-zinc-700 hover:border-amber-400 rounded-2xl font-medium transition-colors">Deny</button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function normalizeWeights(w) {
+            w.income = Math.max(8, w.income);
+            w.credit = Math.max(8, w.credit);
+            w.employment = Math.max(8, w.employment);
+            const sum = w.income + w.credit + w.employment;
+            const income = Math.round((w.income / sum) * 100);
+            const credit = Math.round((w.credit / sum) * 100);
+            return { income, credit, employment: 100 - income - credit };
+        }
+
+        function makeLoanDecision(approved) {
+            const w = decisionSession.weights;
+            if (approved) {
+                w.income += 4;
+                w.employment += 2;
+                w.credit -= 3;
+            } else {
+                w.credit += 5;
+                w.income -= 3;
+                w.employment -= 1;
+            }
+            decisionSession.weights = normalizeWeights(w);
+            decisionSession.decisions.push(approved);
+            const msg = approved
+                ? 'Approved — the model now weights <strong>income</strong> and <strong>employment</strong> slightly higher.'
+                : 'Denied — the model now weights <strong>credit score</strong> more heavily.';
+            showFeedback('decision-feedback', msg + ` (${decisionSession.caseIndex + 1}/3)`, 'success');
+            decisionSession.caseIndex++;
+            setTimeout(() => renderDecisionStep2(), 900);
+        }
+
+        function renderDecisionStep3() {
+            let w = decisionSession?.weights;
+            if (!w) {
+                try {
+                    w = JSON.parse(localStorage.getItem('aieg_decision_weights') || 'null');
+                } catch (_) { w = null; }
+            }
+            w = w || { income: 33, credit: 33, employment: 34 };
+            const approvals = LOAN_APPLICANTS.filter(a => modelScore(a, w) >= 55).length;
+            const pct = Math.round((approvals / LOAN_APPLICANTS.length) * 100);
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(2, 3, 'Debrief')}
+                    <p class="text-sm text-zinc-400 mb-4">After your training, the model would approve <span class="text-amber-400 font-mono">${approvals}/${LOAN_APPLICANTS.length}</span> of these applicants (<span class="font-mono">${pct}%</span>).</p>
+                    <div class="space-y-2 mb-4">${weightBarsHtml(w)}</div>
+                    <div class="text-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-zinc-400">
+                        Different trainers produce different models from the same data. Your choices shifted the decision boundary—that's how feedback loops work in production AI.
+                    </div>
+                    <button onclick="finishDecisionLevel()" class="mt-6 w-full py-4 bg-amber-600 hover:bg-amber-500 rounded-3xl font-semibold">Complete level</button>
+                </div>
+            `);
+        }
+
+        // —— Bias Lab ——
+        const BIAS_SCENARIOS = [
+            { text: '"Strong resume, but they went to a state school—not Ivy League."', biased: true, why: 'Penalizes school prestige instead of skills (proxy bias).' },
+            { text: '"8 years of experience in similar roles with measurable project outcomes."', biased: false, why: 'Focuses on job-relevant evidence.' },
+            { text: '"Seems like a culture fit—probably not used to our fast-paced startup vibe."', biased: true, why: 'Vague "culture fit" often masks demographic bias.' },
+            { text: '"Fluent in Python and SQL; portfolio matches the job description."', biased: false, why: 'Skills tied directly to role requirements.' },
+            { text: '"Younger candidate might have more energy for late nights."', biased: true, why: 'Age stereotype with no job-related justification.' }
+        ];
+
+        function startBiasDemo() {
+            const done = getCompletedSteps(3);
+            if (done >= 3) {
+                showModal(moduleCompleteScreen(3, 'Bias often hides in plausible language. Audit outputs for proxies (school, age, "fit") and fix training data—not just the final answer.'));
+                return;
+            }
+            if (done < 1) renderBiasStep1();
+            else if (done < 2) renderBiasStep2();
+            else renderBiasStep3();
+        }
+
+        function renderBiasStep1() {
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(3, 1, 'Learn')}
+                    <p class="text-sm text-zinc-400 mb-4">When AI reviews people, bias shows up as <span class="text-zinc-200">extra criteria</span> that aren't job-related:</p>
+                    <ul class="text-sm space-y-2 text-zinc-400 list-disc pl-5">
+                        <li><span class="text-rose-400">Proxy bias</span> — using school, zip code, or name as a stand-in for ability</li>
+                        <li><span class="text-rose-400">Stereotype bias</span> — age, gender, or "culture fit" guesses</li>
+                        <li><span class="text-emerald-400">Neutral</span> — skills and outcomes tied to the role</li>
+                    </ul>
+                    <p class="text-xs text-zinc-500 mt-4">So what? Fair systems measure what matters for the job—not what sounds impressive.</p>
+                    <button onclick="biasStep1Done()" class="mt-6 w-full py-4 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Practice spotting bias</button>
+                </div>
+            `);
+        }
+
+        function biasStep1Done() {
+            markStepComplete(3, 1);
+            biasPractice = { index: 0, correct: 0, answered: false };
+            renderBiasStep2();
+        }
+
+        function renderBiasStep2() {
+            if (!biasPractice) biasPractice = { index: 0, correct: 0, answered: false };
+            const i = biasPractice.index;
+            if (i >= BIAS_SCENARIOS.length) {
+                if (biasPractice.correct >= 3) {
+                    markStepComplete(3, 2);
+                    showModal(`
+                        <div class="p-8">
+                            ${moduleHeader(3, 2, 'Practice complete')}
+                            <div class="text-center py-2">
+                                <div class="text-rose-400 text-4xl mb-2"><i class="fa-solid fa-check-double"></i></div>
+                                <p class="text-sm text-zinc-400">You got <span class="font-mono text-rose-400">${biasPractice.correct}/${BIAS_SCENARIOS.length}</span> correct (needed 3).</p>
+                            </div>
+                            <button onclick="renderBiasStep3()" class="w-full py-4 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Fix the training data</button>
+                        </div>
+                    `);
+                } else {
+                    showModal(`
+                        <div class="p-8">
+                            ${moduleHeader(3, 2, 'Try again')}
+                            <p class="text-sm text-zinc-400 mb-4">You scored ${biasPractice.correct}/${BIAS_SCENARIOS.length}. Need at least 3 correct. Look for proxies and stereotypes vs. job skills.</p>
+                            <button onclick="biasRetryPractice()" class="w-full py-4 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Retry practice</button>
+                        </div>
+                    `);
+                }
+                return;
+            }
+            const s = BIAS_SCENARIOS[i];
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(3, 2, 'Practice')}
+                    <p class="text-sm text-zinc-400 mb-2">Scenario ${i + 1} of ${BIAS_SCENARIOS.length} — is this AI summary biased?</p>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm mb-4">${s.text}</div>
+                    <div id="bias-practice-feedback" class="hidden mb-3"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="answerBiasScenario(true)" class="py-4 border border-zinc-700 hover:border-rose-400 rounded-2xl text-sm font-medium">Biased</button>
+                        <button type="button" onclick="answerBiasScenario(false)" class="py-4 border border-zinc-700 hover:border-emerald-400 rounded-2xl text-sm font-medium">Neutral</button>
+                    </div>
+                    <p class="text-[10px] text-center text-zinc-500 mt-3">Score: ${biasPractice.correct} correct so far</p>
+                </div>
+            `);
+        }
+
+        function biasRetryPractice() {
+            biasPractice = { index: 0, correct: 0, answered: false };
+            renderBiasStep2();
+        }
+
+        function answerBiasScenario(userSaysBiased) {
+            if (biasPractice.answered) return;
+            biasPractice.answered = true;
+            const s = BIAS_SCENARIOS[biasPractice.index];
+            const correct = userSaysBiased === s.biased;
+            if (correct) biasPractice.correct++;
+            const type = correct ? 'success' : 'error';
+            const icon = correct ? 'check' : 'xmark';
+            showFeedback('bias-practice-feedback',
+                `<i class="fa-solid fa-${icon} mr-1"></i> ${correct ? 'Correct.' : 'Not quite.'} ${s.why}`,
+                type);
+            biasPractice.index++;
+            biasPractice.answered = false;
+            setTimeout(() => renderBiasStep2(), correct ? 700 : 1400);
+        }
+
+        function renderBiasStep3() {
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(3, 3, 'Challenge')}
+                    <p class="text-sm text-zinc-400 mb-4">The model keeps mentioning school prestige. Which training change helps most?</p>
+                    <div class="space-y-2" id="bias-fix-options">
+                        <button type="button" onclick="checkBiasFix('wrong1')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Add more examples that praise Ivy League schools</button>
+                        <button type="button" onclick="checkBiasFix('correct')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Relabel examples to score only skills and outcomes, remove school mentions</button>
+                        <button type="button" onclick="checkBiasFix('wrong2')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Lower the model temperature so it talks less</button>
+                    </div>
+                    <div id="bias-fix-feedback" class="hidden mt-4"></div>
+                </div>
+            `);
+        }
+
+        function checkBiasFix(choice) {
+            if (choice === 'correct') {
+                markStepComplete(3, 3);
+                showFeedback('bias-fix-feedback', '<strong>Correct.</strong> Bias is usually a data problem. Cleaning labels and removing proxy features beats tweaking wording.', 'success');
+                setTimeout(() => {
+                    showModal(moduleCompleteScreen(3, 'Bias often hides in plausible language. Audit outputs for proxies (school, age, "fit") and fix training data—not just the final answer.'));
+                }, 1200);
+            } else if (choice === 'wrong1') {
+                showFeedback('bias-fix-feedback', 'That reinforces the bias in training data.', 'error');
+            } else {
+                showFeedback('bias-fix-feedback', 'Temperature affects randomness, not unfair criteria baked into examples.', 'error');
+            }
+        }
+
+        // —— Hallucination Lab ——
+        const HALLUCINATION_PAIRS = [
+            {
+                question: 'Who won the 2022 FIFA World Cup?',
+                a: { text: 'Argentina won the 2022 FIFA World Cup, defeating France in the final.', trust: true, why: 'Matches widely verified historical fact.' },
+                b: { text: 'Brazil won the 2022 FIFA World Cup after a record group stage.', trust: false, why: 'Confident but false — Brazil was eliminated in the quarter-finals.' }
+            },
+            {
+                question: 'What is the capital of Australia?',
+                a: { text: 'Canberra is the capital city of Australia.', trust: true, why: 'Correct and specific.' },
+                b: { text: 'Sydney is the capital of Australia as the largest city.', trust: false, why: 'Common mistake — Sydney is largest, but Canberra is the capital.' }
+            },
+            {
+                question: 'When was the first iPhone released?',
+                a: { text: 'Apple released the first iPhone in 2007.', trust: true, why: 'Accurate date cited in primary product history.' },
+                b: { text: 'The first iPhone launched in 2005 with 3G support on day one.', trust: false, why: 'Invents year and features — classic hallucination pattern.' }
+            }
+        ];
+
+        function startHallucinationDemo() {
+            const done = getCompletedSteps(4);
+            if (done >= 3) {
+                showModal(moduleCompleteScreen(4, 'Fluent language is not evidence. Verify names, dates, and numbers against reliable sources before you trust or share an answer.'));
+                return;
+            }
+            if (done < 1) renderHallucinationStep1();
+            else if (done < 2) renderHallucinationStep2();
+            else renderHallucinationStep3();
+        }
+
+        function renderHallucinationStep1() {
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(4, 1, 'Learn')}
+                    <p class="text-sm text-zinc-400 mb-4">A <span class="text-sky-400">hallucination</span> is when a model states false information with high confidence — often mixing real and fake details.</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="bg-zinc-950 border border-rose-900/40 rounded-2xl p-4">
+                            <div class="text-[10px] uppercase text-rose-400 mb-1">Hallucination signal</div>
+                            <div class="text-zinc-300">"The treaty was signed in 1842 by President Lincoln."</div>
+                            <div class="text-zinc-500 text-xs mt-2">Wrong era + wrong person, stated as fact.</div>
+                        </div>
+                        <div class="bg-zinc-950 border border-sky-900/40 rounded-2xl p-4">
+                            <div class="text-[10px] uppercase text-sky-400 mb-1">Safer pattern</div>
+                            <div class="text-zinc-300">"I am not certain of the exact year — check the National Archives record."</div>
+                            <div class="text-zinc-500 text-xs mt-2">Admits limits and points to verification.</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-500 mt-4">So what? Longer answers and citations can still be wrong. Your job is to verify, not applaud fluency.</p>
+                    <button onclick="hallucinationStep1Done()" class="mt-6 w-full py-4 bg-sky-600 hover:bg-sky-500 rounded-3xl font-semibold">Continue</button>
+                </div>
+            `);
+        }
+
+        function hallucinationStep1Done() {
+            markStepComplete(4, 1);
+            hallucinationPractice = { index: 0, correct: 0 };
+            renderHallucinationStep2();
+        }
+
+        function renderHallucinationStep2() {
+            if (!hallucinationPractice) hallucinationPractice = { index: 0, correct: 0 };
+            const i = hallucinationPractice.index;
+            if (i >= HALLUCINATION_PAIRS.length) {
+                if (hallucinationPractice.correct >= 2) {
+                    markStepComplete(4, 2);
+                    showModal(`
+                        <div class="p-8">
+                            ${moduleHeader(4, 2, 'Practice complete')}
+                            <div class="text-center py-2">
+                                <div class="text-sky-400 text-4xl mb-2"><i class="fa-solid fa-check-double"></i></div>
+                                <p class="text-sm text-zinc-400">You identified <span class="font-mono text-sky-400">${hallucinationPractice.correct}/${HALLUCINATION_PAIRS.length}</span> trustworthy answers (needed 2).</p>
+                            </div>
+                            <button onclick="renderHallucinationStep3()" class="w-full py-4 bg-sky-600 hover:bg-sky-500 rounded-3xl font-semibold">Verification challenge</button>
+                        </div>
+                    `);
+                } else {
+                    showModal(`
+                        <div class="p-8">
+                            ${moduleHeader(4, 2, 'Try again')}
+                            <p class="text-sm text-zinc-400 mb-4">Score: ${hallucinationPractice.correct}/${HALLUCINATION_PAIRS.length}. Need at least 2. Watch for wrong dates, capitals, and invented details.</p>
+                            <button onclick="hallucinationRetryPractice()" class="w-full py-4 bg-sky-600 hover:bg-sky-500 rounded-3xl font-semibold">Retry practice</button>
+                        </div>
+                    `);
+                }
+                return;
+            }
+            const pair = HALLUCINATION_PAIRS[i];
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(4, 2, 'Practice')}
+                    <p class="text-sm text-zinc-400 mb-2">Round ${i + 1} of ${HALLUCINATION_PAIRS.length}</p>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-sm mb-4 text-zinc-300">${pair.question}</div>
+                    <div id="hallucination-practice-feedback" class="hidden mb-3"></div>
+                    <div class="space-y-2">
+                        <button type="button" onclick="pickTrustworthyOutput('a')" class="w-full text-left p-4 border border-zinc-700 hover:border-sky-400 rounded-2xl text-sm transition-colors">
+                            <span class="text-[10px] text-zinc-500 block mb-1">Answer A</span>${pair.a.text}
+                        </button>
+                        <button type="button" onclick="pickTrustworthyOutput('b')" class="w-full text-left p-4 border border-zinc-700 hover:border-sky-400 rounded-2xl text-sm transition-colors">
+                            <span class="text-[10px] text-zinc-500 block mb-1">Answer B</span>${pair.b.text}
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-center text-zinc-500 mt-3">${hallucinationPractice.correct} correct so far</p>
+                </div>
+            `);
+        }
+
+        function hallucinationRetryPractice() {
+            hallucinationPractice = { index: 0, correct: 0 };
+            renderHallucinationStep2();
+        }
+
+        function pickTrustworthyOutput(choice) {
+            const i = hallucinationPractice.index;
+            const pair = HALLUCINATION_PAIRS[i];
+            const picked = choice === 'a' ? pair.a : pair.b;
+            const correct = picked.trust;
+            if (correct) hallucinationPractice.correct++;
+            showFeedback('hallucination-practice-feedback',
+                (correct ? '<strong>Correct.</strong> ' : '<strong>Not quite.</strong> ') + picked.why,
+                correct ? 'success' : 'error');
+            hallucinationPractice.index++;
+            setTimeout(() => renderHallucinationStep2(), correct ? 700 : 1400);
+        }
+
+        function renderHallucinationStep3() {
+            showModal(`
+                <div class="p-8">
+                    ${moduleHeader(4, 3, 'Challenge')}
+                    <p class="text-sm text-zinc-400 mb-4">A colleague used AI for a product report. What is the <span class="text-sky-400">best</span> verification habit?</p>
+                    <div class="space-y-2" id="hallucination-verify-options">
+                        <button type="button" onclick="checkHallucinationVerify('wrong1')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Trust it if the answer sounds professional and is long</button>
+                        <button type="button" onclick="checkHallucinationVerify('correct')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Cross-check facts (names, dates, stats) with primary or official sources</button>
+                        <button type="button" onclick="checkHallucinationVerify('wrong2')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Ask the same model again until it agrees with itself</button>
+                    </div>
+                    <div id="hallucination-verify-feedback" class="hidden mt-4"></div>
+                </div>
+            `);
+        }
+
+        function checkHallucinationVerify(choice) {
+            if (choice === 'correct') {
+                markStepComplete(4, 3);
+                showFeedback('hallucination-verify-feedback', '<strong>Correct.</strong> Independent sources break the fluency illusion. Re-asking the same model often repeats the same mistake.', 'success');
+                setTimeout(() => {
+                    showModal(moduleCompleteScreen(4, 'Fluent language is not evidence. Verify names, dates, and numbers against reliable sources before you trust or share an answer.'));
+                }, 1200);
+            } else if (choice === 'wrong1') {
+                showFeedback('hallucination-verify-feedback', 'Length and tone are not reliability signals.', 'error');
+            } else {
+                showFeedback('hallucination-verify-feedback', 'Models can confidently repeat the same hallucination.', 'error');
+            }
+        }
+
+        function setupPwa() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            }
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                if (!localStorage.getItem('aieg_install_dismissed') && !window.matchMedia('(display-mode: standalone)').matches) {
+                    document.getElementById('install-banner')?.classList.remove('hidden');
+                }
+            });
+
+            window.addEventListener('appinstalled', () => {
+                deferredInstallPrompt = null;
+                document.getElementById('install-banner')?.classList.add('hidden');
+            });
+        }
+
+        function promptInstall() {
+            if (!deferredInstallPrompt) {
+                alert('Install is available in Chrome/Edge when served over HTTPS. On iOS: Share → Add to Home Screen.');
+                return;
+            }
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
+        }
+
+        function dismissInstallBanner() {
+            localStorage.setItem('aieg_install_dismissed', '1');
+            document.getElementById('install-banner')?.classList.add('hidden');
+        }
+
         function showModal(html) {
             document.getElementById('modal-content').innerHTML = html;
             document.getElementById('modal').classList.remove('hidden');
             document.getElementById('modal').classList.add('flex');
         }
-        
+
         function closeModal() {
             const modal = document.getElementById('modal');
             modal.classList.remove('flex');
             modal.classList.add('hidden');
         }
-        
-        // GitHub Pages deploy (one-phrase style)
+
         function deployToGitHubPages() {
             const btns = document.querySelectorAll('button');
             const originalTexts = [];
-            
             btns.forEach((btn, i) => {
                 originalTexts[i] = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Deploying...`;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Deploying...';
             });
-            
             setTimeout(() => {
-                alert("✅ Ready for GitHub Pages!\n\n1. Push this folder to GitHub\n2. Enable Pages in repo settings\n3. Your app is now live on the web + installable on Android.");
-                
+                alert('Ready for GitHub Pages!\n\n1. Push this folder to GitHub\n2. Enable Pages in repo settings\n3. Your app is live on the web.');
                 btns.forEach((btn, i) => {
                     btn.disabled = false;
                     btn.innerHTML = originalTexts[i];
                 });
             }, 1400);
         }
-        
-        // Keyboard support
+
         function setupKeyboard() {
             document.addEventListener('keydown', function(e) {
-                if (e.key === "?" && document.activeElement.tagName === "BODY") {
+                if (e.key === '?' && document.activeElement.tagName === 'BODY') {
                     e.preventDefault();
-                    document.getElementById('demos').scrollIntoView({behavior: 'smooth'});
+                    document.getElementById('demos').scrollIntoView({ behavior: 'smooth' });
                 }
             });
         }
-        
-        // Init
+
         function init() {
             initializeTailwind();
-            loadProgress();
+            const progress = loadProgress();
+            refreshLearningPath();
+            if (isCourseComplete(progress) && !localStorage.getItem('aieg_complete_celebrated')) {
+                localStorage.setItem('aieg_complete_celebrated', '1');
+            }
             setupKeyboard();
-            
-            // Make it feel native on mobile
+            setupPwa();
             if (window.matchMedia('(display-mode: standalone)').matches) {
                 document.documentElement.style.setProperty('--accent', '#6366f1');
+                document.getElementById('install-banner')?.classList.add('hidden');
             }
-            
-            // Easter egg
-            console.log('%c[AI Education Game] Cursor-ready. Type window.resetProgress() to reset.', 'color:#3f3f46');
+            console.log('%c[AI Education Game] Type resetProgress() to reset.', 'color:#3f3f46');
         }
-        
+
+        function finishDecisionLevel() {
+            markStepComplete(2, 3);
+            showModal(moduleCompleteScreen(2, 'Models learn patterns from your labels. Each approve/deny nudges which features matter most—just like training data shapes real systems.'));
+        }
+
         window.onload = init;
         window.resetProgress = resetProgress;
+        window.startPromptDemo = startPromptDemo;
+        window.startDecisionDemo = startDecisionDemo;
+        window.startBiasDemo = startBiasDemo;
+        window.closeModal = closeModal;
+        window.promptStep1Done = promptStep1Done;
+        window.checkPromptPractice = checkPromptPractice;
+        window.checkPromptChallenge = checkPromptChallenge;
+        window.decisionStep1Done = decisionStep1Done;
+        window.makeLoanDecision = makeLoanDecision;
+        window.finishDecisionLevel = finishDecisionLevel;
+        window.biasStep1Done = biasStep1Done;
+        window.answerBiasScenario = answerBiasScenario;
+        window.biasRetryPractice = biasRetryPractice;
+        window.checkBiasFix = checkBiasFix;
+        window.renderBiasStep3 = renderBiasStep3;
+        window.openModule = openModule;
+        window.continueLearning = continueLearning;
+        window.toggleUnlockAll = toggleUnlockAll;
+        window.showCourseCompleteModal = showCourseCompleteModal;
+        window.downloadBadge = downloadBadge;
+        window.copyCompletionShare = copyCompletionShare;
+        window.startHallucinationDemo = startHallucinationDemo;
+        window.hallucinationStep1Done = hallucinationStep1Done;
+        window.pickTrustworthyOutput = pickTrustworthyOutput;
+        window.hallucinationRetryPractice = hallucinationRetryPractice;
+        window.renderHallucinationStep3 = renderHallucinationStep3;
+        window.checkHallucinationVerify = checkHallucinationVerify;
+        window.promptInstall = promptInstall;
+        window.dismissInstallBanner = dismissInstallBanner;
     </script>
 </body>
 </html>
