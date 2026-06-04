@@ -2,1468 +2,1652 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Education Game • Practical AI Literacy</title>
-    <meta name="description" content="Interactive AI literacy course — prompting, decisions, bias, and hallucinations.">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AIEG">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Raise Your AI</title>
+    <meta name="description" content="Raise your AI companion. Six-day story plus optional Extended Mode. Your choices decide.">
+    <meta name="theme-color" content="#0c0a14">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
-        :root {
-            --primary: #6366f1;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; background: #0c0a14; }
+        .font-game { font-family: 'Syne', 'Inter', sans-serif; }
+
+        .stat-bar {
+            transition: width 0.7s cubic-bezier(0.34, 1.2, 0.64, 1);
         }
-        
-        body {
-            font-family: 'Inter', system_ui, sans-serif;
+        .stat-val {
+            transition: color 0.3s ease, transform 0.3s ease;
         }
-        
-        .font-display {
-            font-family: 'Space Grotesk', 'Inter', sans-serif;
+        .stat-val.bump { transform: scale(1.15); }
+
+        .stat-float {
+            position: absolute;
+            right: 0;
+            top: -4px;
+            font-size: 11px;
             font-weight: 600;
-        }
-
-        .section {
-            scroll-margin-top: 80px;
-        }
-
-        .demo-card {
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                       box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
-        
-        .demo-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-        }
-
-        .ai-demo {
-            background: linear-gradient(145deg, #f8fafc, #f1e7ff);
-        }
-
-        .nav-active {
-            color: #6366f1;
-            font-weight: 600;
-        }
-
-        .metric {
             font-variant-numeric: tabular-nums;
+            pointer-events: none;
+            animation: floatUp 1.1s ease-out forwards;
+            z-index: 5;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(6px) scale(0.85); }
+            15% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-22px) scale(0.95); }
         }
 
-        #modal-content {
-            max-height: min(85vh, 720px);
-            overflow-y: auto;
+        .aura {
+            transition: box-shadow 0.7s ease;
+        }
+        .aura-pulse {
+            animation: auraPulse var(--aura-speed, 3s) ease-in-out infinite;
+        }
+        @keyframes auraPulse {
+            0%, 100% { transform: scale(1); filter: brightness(var(--aura-dim, 0.9)); }
+            50% { transform: scale(1.02); filter: brightness(var(--aura-bright, 1.15)); }
         }
 
-        .step-dot-active-emerald { background-color: #34d399; }
-        .step-dot-active-amber { background-color: #fbbf24; }
-        .step-dot-active-rose { background-color: #fb7185; }
-        .step-dot-active-sky { background-color: #38bdf8; }
-
-        .demo-card-locked {
-            opacity: 0.55;
-            cursor: not-allowed;
+        .growth-ring {
+            transition: border-color 0.6s ease, opacity 0.6s ease, transform 0.55s ease, box-shadow 0.6s ease;
         }
-        .demo-card-locked:hover {
-            transform: none;
-            box-shadow: none;
+
+        #companion-panel.panel-breathe {
+            animation: panelBreathe 4.5s ease-in-out infinite;
+        }
+        @keyframes panelBreathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.008); }
+        }
+
+        .companion-face {
+            transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+            transform-origin: center center;
+        }
+        .emoji-bounce { animation: emojiBounce 0.55s ease; }
+        .emoji-shake { animation: emojiShake 0.5s ease; }
+        .emoji-pop { animation: emojiPop 0.45s cubic-bezier(0.34, 1.5, 0.64, 1); }
+        .emoji-nudge { animation: emojiNudge 0.35s ease; }
+        @keyframes emojiBounce {
+            0%, 100% { transform: scale(var(--emoji-scale, 1)); }
+            40% { transform: scale(calc(var(--emoji-scale, 1) * 1.14)); }
+            70% { transform: scale(calc(var(--emoji-scale, 1) * 0.96)); }
+        }
+        @keyframes emojiShake {
+            0%, 100% { transform: scale(var(--emoji-scale, 1)) rotate(0); }
+            20% { transform: scale(var(--emoji-scale, 1)) rotate(-8deg); }
+            40% { transform: scale(var(--emoji-scale, 1)) rotate(8deg); }
+            60% { transform: scale(var(--emoji-scale, 1)) rotate(-5deg); }
+        }
+        @keyframes emojiPop {
+            0% { transform: scale(calc(var(--emoji-scale, 1) * 0.7)); }
+            60% { transform: scale(calc(var(--emoji-scale, 1) * 1.18)); }
+            100% { transform: scale(var(--emoji-scale, 1)); }
+        }
+        @keyframes emojiNudge {
+            0%, 100% { transform: scale(var(--emoji-scale, 1)); }
+            50% { transform: scale(calc(var(--emoji-scale, 1) * 1.06)); }
+        }
+
+        .scenario-enter { animation: slideUp 0.35s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .reaction-flash { animation: reactionFlash 0.4s ease; }
+        @keyframes reactionFlash { 0% { border-color: rgba(139, 92, 246, 0.8); } 100% { border-color: rgba(39, 39, 42, 1); } }
+
+        .choice-btn:active { transform: scale(0.98); }
+        .choice-risky { border-color: rgba(251, 191, 36, 0.35) !important; }
+        .choice-risky:hover { border-color: rgba(251, 191, 36, 0.55) !important; }
+        .choice-gamble { border-color: rgba(244, 63, 94, 0.35) !important; }
+        .feedback-risk { border-color: rgba(244, 63, 94, 0.5) !important; background: rgba(69, 10, 10, 0.35) !important; color: #fecaca !important; }
+        .aura-flare { animation: auraFlare 0.7s ease-out; }
+        @keyframes auraFlare {
+            0% { filter: brightness(1.8); transform: scale(1.04); }
+            100% { filter: brightness(1); transform: scale(1); }
+        }
+        .emoji-rumble { animation: emojiRumble 0.65s ease; }
+        .legacy-glow { box-shadow: 0 0 48px rgba(99, 102, 241, 0.12); }
+        .legacy-stat-track { height: 6px; background: #27272a; border-radius: 999px; overflow: hidden; }
+        .legacy-stat-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+        @keyframes emojiRumble {
+            0%, 100% { transform: scale(var(--emoji-scale, 1)) rotate(0); }
+            15% { transform: scale(calc(var(--emoji-scale, 1) * 1.2)) rotate(-6deg); }
+            30% { transform: scale(calc(var(--emoji-scale, 1) * 0.9)) rotate(6deg); }
+            45% { transform: scale(calc(var(--emoji-scale, 1) * 1.15)) rotate(-4deg); }
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200">
-    <!-- Navbar -->
-    <nav class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-lg sticky top-0 z-50">
-        <div class="max-w-screen-xl mx-auto px-6">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-x-3">
-                    <div class="w-9 h-9 bg-indigo-600 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-robot text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <span class="font-display text-2xl font-semibold tracking-tighter">AIEG</span>
-                        <span class="text-xs text-zinc-500 ml-1.5 font-mono">v0.4</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-x-8 text-sm">
-                    <a href="#demos" class="hover:text-white transition-colors">Demos</a>
-                    <a href="#concepts" class="hover:text-white transition-colors">Concepts</a>
-                    <a href="#progress" class="hover:text-white transition-colors">Progress</a>
-                </div>
-                
-                <div class="flex items-center gap-x-3">
-                    <button onclick="resetProgress()" 
-                            class="px-4 py-2 text-xs font-medium rounded-3xl border border-zinc-700 hover:bg-zinc-900 transition-colors flex items-center gap-x-2">
-                        <i class="fa-solid fa-redo text-xs"></i>
-                        <span>Reset</span>
-                    </button>
-                    <button onclick="deployToGitHubPages()" 
-                            class="px-5 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-3xl flex items-center gap-x-2 hover:bg-zinc-100 transition-all active:scale-[0.985]">
-                        <i class="fa-solid fa-rocket"></i>
-                        <span class="font-semibold">Deploy</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero -->
-    <div class="max-w-screen-xl mx-auto px-6 pt-16 pb-12">
-        <div class="max-w-2xl">
-            <div class="inline-flex items-center gap-x-2 px-3 py-1 rounded-3xl bg-zinc-900 border border-zinc-800 text-xs mb-6">
-                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span class="text-emerald-400 font-medium">Installable app • Works offline (shell) • Landscape-friendly</span>
-            </div>
-            
-            <h1 class="font-display text-6xl tracking-tighter leading-none">Master practical<br>AI literacy.</h1>
-            <p class="mt-4 text-xl text-zinc-400">An interactive course disguised as a game. Learn how real AI systems work through hands-on demos.</p>
-            
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-3 mt-8">
-                <button id="hero-continue-btn" onclick="continueLearning()" 
-                        class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 transition-colors rounded-3xl font-semibold flex items-center gap-x-3 text-lg">
-                    <span id="hero-continue-label">Start learning</span>
-                    <i id="hero-continue-icon" class="fa-solid fa-arrow-right"></i>
-                </button>
-                <button onclick="window.scrollTo({top: document.getElementById('concepts').offsetTop - 80, behavior:'smooth'})" 
-                        class="px-6 py-3.5 border border-zinc-700 hover:bg-zinc-900 transition-colors rounded-3xl font-medium">
-                    Browse concepts
-                </button>
-            </div>
-            
-            <p id="hero-path-hint" class="mt-4 text-sm text-zinc-500">Follow the path: Prompt Lab → Decision Simulator → Bias Lab → Hallucination Lab</p>
-        </div>
-    </div>
-
-    <!-- Interactive Demos -->
-    <div id="demos" class="max-w-screen-xl mx-auto px-6 pb-16">
-        <div class="flex items-end justify-between mb-6">
-            <div>
-                <span class="text-indigo-400 text-sm font-semibold tracking-wider">INTERACTIVE MODULES</span>
-                <h2 class="font-display text-4xl tracking-tighter">Try it yourself</h2>
-            </div>
-            <div class="text-xs text-zinc-500">3 steps per module • resumes where you left off</div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            
-            <!-- Demo 1 -->
-            <div id="card-module-1" data-level="1" onclick="openModule(1)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
-                <div id="card-badge-1" class="flex justify-between items-start">
-                    <div class="w-12 h-12 bg-emerald-900/30 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-comment-dots text-emerald-400 text-3xl"></i>
-                    </div>
-                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-emerald-900/40 text-emerald-400 font-mono">LEVEL 1</div>
-                </div>
-                <div class="mt-6">
-                    <div class="font-semibold text-xl">Prompt Engineering Lab</div>
-                    <div class="text-zinc-400 mt-1 text-sm">Craft prompts that actually work. See how small changes dramatically affect AI output.</div>
-                </div>
-                <div id="card-cta-1" class="mt-8 flex items-center text-xs text-emerald-400 font-medium group-hover:gap-x-2 transition-all">
-                    OPEN LAB <i class="fa-solid fa-arrow-right ml-1.5"></i>
-                </div>
-            </div>
-            
-            <!-- Demo 2 -->
-            <div id="card-module-2" data-level="2" onclick="openModule(2)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
-                <div id="card-badge-2" class="flex justify-between items-start">
-                    <div class="w-12 h-12 bg-amber-900/30 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-project-diagram text-amber-400 text-3xl"></i>
-                    </div>
-                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-amber-900/40 text-amber-400 font-mono">LEVEL 2</div>
-                </div>
-                <div class="mt-6">
-                    <div class="font-semibold text-xl">AI Decision Simulator</div>
-                    <div class="text-zinc-400 mt-1 text-sm">Build a tiny AI that makes decisions. Watch how training data shapes behavior.</div>
-                </div>
-                <div id="card-cta-2" class="mt-8 flex items-center text-xs text-amber-400 font-medium group-hover:gap-x-2 transition-all">
-                    RUN SIMULATION <i class="fa-solid fa-arrow-right ml-1.5"></i>
-                </div>
-            </div>
-            
-            <!-- Demo 3 -->
-            <div id="card-module-3" data-level="3" onclick="openModule(3)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
-                <div id="card-badge-3" class="flex justify-between items-start">
-                    <div class="w-12 h-12 bg-rose-900/30 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-balance-scale text-rose-400 text-3xl"></i>
-                    </div>
-                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-rose-900/40 text-rose-400 font-mono">LEVEL 3</div>
-                </div>
-                <div class="mt-6">
-                    <div class="font-semibold text-xl">Bias &amp; Fairness Lab</div>
-                    <div class="text-zinc-400 mt-1 text-sm">Feed the model real scenarios and discover hidden biases in its reasoning.</div>
-                </div>
-                <div id="card-cta-3" class="mt-8 flex items-center text-xs text-rose-400 font-medium group-hover:gap-x-2 transition-all">
-                    DETECT BIAS <i class="fa-solid fa-arrow-right ml-1.5"></i>
-                </div>
-            </div>
-
-            <!-- Demo 4 -->
-            <div id="card-module-4" data-level="4" onclick="openModule(4)" class="demo-card cursor-pointer bg-zinc-900 border border-zinc-800 rounded-3xl p-6 group relative">
-                <div id="card-badge-4" class="flex justify-between items-start">
-                    <div class="w-12 h-12 bg-sky-900/30 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-ghost text-sky-400 text-3xl"></i>
-                    </div>
-                    <div class="text-[10px] px-3 py-1 rounded-3xl bg-sky-900/40 text-sky-400 font-mono">LEVEL 4</div>
-                </div>
-                <div class="mt-6">
-                    <div class="font-semibold text-xl">Hallucination &amp; Confidence Lab</div>
-                    <div class="text-zinc-400 mt-1 text-sm">Same prompt, two answers — learn which output to trust and how to verify claims.</div>
-                </div>
-                <div id="card-cta-4" class="mt-8 flex items-center text-xs text-sky-400 font-medium group-hover:gap-x-2 transition-all">
-                    SPOT HALLUCINATIONS <i class="fa-solid fa-arrow-right ml-1.5"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Concepts -->
-    <div id="concepts" class="max-w-screen-xl mx-auto px-6 py-12 border-t border-zinc-800">
-        <div class="max-w-2xl">
-            <span class="text-indigo-400 text-sm font-semibold tracking-wider">CORE CONCEPTS</span>
-            <h2 class="font-display text-4xl tracking-tighter mt-1">What you'll actually learn</h2>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-8">
-            <div class="border border-zinc-800 rounded-3xl p-6">
-                <div class="font-semibold">Prompting that works</div>
-                <div class="text-sm text-zinc-400 mt-3">Chain-of-thought, few-shot, role prompting, and constraint engineering.</div>
-            </div>
-            <div class="border border-zinc-800 rounded-3xl p-6">
-                <div class="font-semibold">How models actually decide</div>
-                <div class="text-sm text-zinc-400 mt-3">Training data, temperature, tokens, and weighted features.</div>
-            </div>
-            <div class="border border-zinc-800 rounded-3xl p-6">
-                <div class="font-semibold">Real-world AI ethics</div>
-                <div class="text-sm text-zinc-400 mt-3">Bias detection, fairness metrics, and responsible deployment.</div>
-            </div>
-            <div class="border border-zinc-800 rounded-3xl p-6">
-                <div class="font-semibold">Hallucinations &amp; trust</div>
-                <div class="text-sm text-zinc-400 mt-3">Why fluent text lies, spotting fake facts, and verification habits.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Progress -->
-    <div id="progress" class="max-w-screen-xl mx-auto px-6 py-12 border-t border-zinc-800">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <span class="text-indigo-400 text-sm font-semibold tracking-wider">YOUR JOURNEY</span>
-                <h2 class="font-display text-4xl tracking-tighter">Progress</h2>
-            </div>
-            <div id="progress-percentage" class="text-5xl font-display font-semibold tabular-nums text-indigo-400">0%</div>
-        </div>
-        
-        <div id="course-complete-panel" class="hidden mb-6 bg-gradient-to-br from-indigo-950/80 to-zinc-900 border border-indigo-800/50 rounded-3xl p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
-                <div>
-                    <div class="text-indigo-400 text-sm font-semibold tracking-wider">COURSE COMPLETE</div>
-                    <div class="font-display text-2xl tracking-tight mt-1">You finished all 12 steps</div>
-                    <p class="text-sm text-zinc-400 mt-2">View your certificate and recap checklist.</p>
-                </div>
-                <button onclick="showCourseCompleteModal()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-3xl font-semibold text-sm shrink-0">
-                    View certificate
-                </button>
-            </div>
-        </div>
-
-        <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
-            <label class="flex items-center gap-3 cursor-pointer text-zinc-400 hover:text-zinc-300">
-                <input type="checkbox" id="unlock-all-toggle" onchange="toggleUnlockAll(this.checked)" class="rounded border-zinc-600 bg-zinc-900 text-indigo-600 focus:ring-indigo-500">
-                <span>Classroom mode — unlock all levels</span>
-            </label>
-            <span id="path-status-text" class="text-xs text-zinc-500"></span>
-        </div>
-
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
-            <div class="space-y-6">
-                <div>
-                    <div class="flex justify-between text-sm mb-2">
-                        <div>Prompt Engineering Lab</div>
-                        <div id="progress-1" class="font-mono text-emerald-400">0/3</div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-1" class="h-2 w-0 bg-emerald-400 transition-all rounded-full"></div></div>
+<body class="text-zinc-100 min-h-screen selection:bg-violet-500/30">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6 min-h-screen flex flex-col">
+        <header class="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-violet-600/30 border border-violet-500/40 flex items-center justify-center">
+                    <i class="fa-solid fa-seedling text-violet-300"></i>
                 </div>
                 <div>
-                    <div class="flex justify-between text-sm mb-2">
-                        <div>Decision Simulator</div>
-                        <div id="progress-2" class="font-mono text-amber-400">0/3</div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-2" class="h-2 w-0 bg-amber-400 transition-all rounded-full"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-sm mb-2">
-                        <div>Bias &amp; Fairness Lab</div>
-                        <div id="progress-3" class="font-mono text-rose-400">0/3</div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-3" class="h-2 w-0 bg-rose-400 transition-all rounded-full"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-sm mb-2">
-                        <div>Hallucination &amp; Confidence Lab</div>
-                        <div id="progress-4" class="font-mono text-sky-400">0/3</div>
-                    </div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div id="bar-4" class="h-2 w-0 bg-sky-400 transition-all rounded-full"></div></div>
+                    <h1 class="font-game text-xl sm:text-2xl tracking-tight leading-none">Raise Your AI</h1>
+                    <p id="header-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Six days to shape who it becomes.</p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Install banner (PWA) -->
-    <div id="install-banner" class="hidden fixed bottom-4 left-4 right-4 z-[90] max-w-md mx-auto">
-        <div class="bg-zinc-900 border border-indigo-700/60 rounded-3xl p-4 shadow-2xl flex items-start gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-download text-white"></i>
+            <div class="flex items-center gap-2">
+                <div id="day-badge" class="px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-mono text-violet-300">Day 1</div>
+                <button type="button" id="retire-btn" onclick="retireCompanion()" class="hidden px-3 py-1.5 text-xs rounded-xl border border-zinc-700 text-zinc-400 hover:text-zinc-200">Retire</button>
+                <button type="button" onclick="resetGame()" class="p-2 rounded-xl border border-zinc-800 text-zinc-500 hover:text-zinc-300" title="New run"><i class="fa-solid fa-rotate-right text-sm"></i></button>
             </div>
-            <div class="flex-1 min-w-0">
-                <div class="font-semibold text-sm">Install AIEG</div>
-                <p class="text-xs text-zinc-400 mt-0.5">Add to your home screen for quick access and offline shell.</p>
-                <div class="flex gap-2 mt-3">
-                    <button onclick="promptInstall()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xs font-semibold">Install</button>
-                    <button onclick="dismissInstallBanner()" class="px-4 py-2 text-xs text-zinc-500 hover:text-zinc-300">Not now</button>
+        </header>
+
+        <div class="grid grid-cols-1 landscape:grid-cols-[1fr_1.15fr] gap-4 mb-4">
+            <section id="companion-panel" class="panel-breathe bg-zinc-900/60 border border-zinc-800 rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden min-h-[200px]">
+                <div id="growth-ring" class="growth-ring absolute inset-3 rounded-3xl border-2 border-violet-500/20 pointer-events-none"></div>
+                <div id="aura-ring" class="aura aura-pulse absolute inset-4 rounded-3xl pointer-events-none"></div>
+                <div id="companion-visual" class="relative z-10 text-center">
+                    <div id="companion-emoji" class="companion-face text-6xl sm:text-7xl mb-2 inline-block">🥚</div>
+                    <div id="companion-stage" class="text-[10px] font-mono uppercase tracking-widest text-violet-400/80">Hatchling</div>
+                    <div id="companion-name" class="font-game text-lg text-violet-200 mt-1">Spark</div>
+                    <div id="companion-mood" class="text-xs text-zinc-500 mt-1">Warming up…</div>
+                    <div id="mood-badge" class="hidden mt-2 px-2.5 py-1 rounded-full text-[10px] font-medium border"></div>
+                </div>
+                <p id="companion-blurb" class="relative z-10 text-xs text-zinc-400 text-center mt-3 max-w-[260px] leading-relaxed">Your companion mirrors how you guide it.</p>
+                <div id="consequence-trail" class="hidden relative z-10 mt-2 flex flex-wrap gap-1 justify-center max-w-[260px]"></div>
+            </section>
+
+            <section class="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-5 sm:p-6 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] uppercase tracking-widest text-zinc-500">Core stats</span>
+                    <span id="scenario-counter" class="text-[10px] font-mono text-zinc-600">0 / 3</span>
+                </div>
+                <div class="stat-wrap relative" data-stat="helpfulness">
+                    <div class="flex justify-between text-xs mb-1"><span class="text-emerald-400/90"><i class="fa-solid fa-hand-holding-heart mr-1 opacity-70"></i>Helpfulness</span><span id="val-helpfulness" class="stat-val font-mono text-zinc-400">50</span></div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden relative"><div id="bar-helpfulness" class="stat-bar h-full bg-emerald-500 rounded-full" style="width:50%"></div></div>
+                </div>
+                <div class="stat-wrap relative" data-stat="accuracy">
+                    <div class="flex justify-between text-xs mb-1"><span class="text-sky-400/90"><i class="fa-solid fa-bullseye mr-1 opacity-70"></i>Accuracy</span><span id="val-accuracy" class="stat-val font-mono text-zinc-400">50</span></div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden relative"><div id="bar-accuracy" class="stat-bar h-full bg-sky-500 rounded-full" style="width:50%"></div></div>
+                </div>
+                <div class="stat-wrap relative" data-stat="bias">
+                    <div class="flex justify-between text-xs mb-1"><span class="text-rose-400/90"><i class="fa-solid fa-scale-unbalanced mr-1 opacity-70"></i>Bias</span><span id="val-bias" class="stat-val font-mono text-zinc-400">30</span></div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden relative"><div id="bar-bias" class="stat-bar h-full bg-rose-500 rounded-full" style="width:30%"></div></div>
+                    <p class="text-[9px] text-zinc-600 mt-0.5">Lower is fairer</p>
+                </div>
+                <div class="stat-wrap relative" data-stat="confidence">
+                    <div class="flex justify-between text-xs mb-1"><span class="text-amber-400/90"><i class="fa-solid fa-bolt mr-1 opacity-70"></i>Confidence</span><span id="val-confidence" class="stat-val font-mono text-zinc-400">45</span></div>
+                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden relative"><div id="bar-confidence" class="stat-bar h-full bg-amber-500 rounded-full" style="width:45%"></div></div>
+                </div>
+                <div id="extended-goals-panel" class="hidden pt-2 border-t border-zinc-800 space-y-2">
+                    <span class="text-[10px] uppercase tracking-widest text-indigo-400/80">Long-term goals</span>
+                    <div id="extended-goals-list" class="space-y-1.5 text-[11px]"></div>
+                </div>
+            </section>
+        </div>
+
+        <main id="game-main" class="flex-1 flex flex-col min-h-0">
+            <div id="screen-start" class="flex-1 flex flex-col justify-center">
+                <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 sm:p-8 text-center scenario-enter">
+                    <p class="text-violet-400 text-xs font-mono uppercase tracking-wider mb-2">Main story · Day 1 → 6</p>
+                    <h2 class="font-game text-2xl sm:text-3xl mb-3">Name your AI</h2>
+                    <input id="companion-name-input" type="text" maxlength="16" value="Spark" class="w-full max-w-xs mx-auto bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-center text-lg font-game focus:outline-none focus:border-violet-500 mb-6">
+                    <p class="text-sm text-zinc-500 mb-2 max-w-md mx-auto">Real moments, sharper stakes each day. Coach it, correct it, watch it grow — or crack.</p>
+                    <p class="text-xs text-zinc-600 mb-6 max-w-md mx-auto">After Day 6, optional Extended Mode — no pressure, skip anytime.</p>
+                    <button type="button" onclick="startRun()" class="px-8 py-3.5 bg-violet-600 hover:bg-violet-500 rounded-2xl font-semibold">Begin Day 1</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Footer -->
-    <div class="max-w-screen-xl mx-auto px-6 py-12 border-t border-zinc-800 text-xs text-zinc-500 flex justify-between items-center">
-        <div>Built for real learning • Open source • GitHub Pages ready</div>
-        <div class="font-mono">Cursor + Tailwind</div>
-    </div>
+            <div id="screen-play" class="hidden flex-1 flex flex-col min-h-0">
+                <div id="scenario-card" class="scenario-enter flex-1 bg-zinc-900/80 border border-zinc-800 rounded-3xl p-5 sm:p-6 flex flex-col min-h-0">
+                    <div class="flex items-start gap-2 mb-2">
+                        <span id="scenario-difficulty" class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 font-mono">EASY</span>
+                        <span id="scenario-tag" class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-600 font-mono">TAG</span>
+                        <span id="scenario-title" class="text-sm font-semibold text-zinc-300 flex-1 text-right">Title</span>
+                    </div>
+                    <p id="scenario-scene" class="text-sm text-zinc-400 leading-relaxed mb-3"></p>
+                    <div class="bg-zinc-950/80 border border-zinc-800/80 rounded-2xl p-4 mb-3">
+                        <p class="text-[10px] text-violet-400/80 uppercase tracking-wide mb-1"><span id="companion-name-inline">Spark</span> says</p>
+                        <p id="scenario-ai-line" class="text-sm text-zinc-200 italic"></p>
+                    </div>
+                    <p class="text-[10px] text-zinc-600 uppercase tracking-wide mb-2">You respond</p>
+                    <div id="choices-container" class="space-y-2 flex-1 overflow-y-auto"></div>
+                </div>
+                <div id="feedback-area" class="hidden mt-3 space-y-2 scenario-enter">
+                    <div id="feedback-strip" class="p-3 rounded-2xl border border-violet-800/50 bg-violet-950/30 text-sm text-violet-200"></div>
+                    <div id="ai-reaction" class="p-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 text-sm text-zinc-400">
+                        <span id="ai-reaction-label" class="text-zinc-500 text-[10px] uppercase block mb-1">Your AI mutters</span>
+                        <span id="ai-reaction-text"></span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Modals -->
-    <div id="modal" onclick="if (event.target.id === 'modal') closeModal()" class="hidden fixed inset-0 bg-black/80 z-[100] flex items-center justify-center">
-        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 border border-zinc-700 rounded-3xl w-full max-w-lg mx-4 overflow-hidden flex flex-col max-h-[90vh]">
-            <div id="modal-content" class="overflow-y-auto"></div>
-        </div>
+            <div id="screen-day-break" class="hidden flex-1 flex flex-col justify-center">
+                <div class="bg-gradient-to-br from-violet-950/50 to-zinc-900 border border-violet-800/40 rounded-3xl p-8 text-center scenario-enter">
+                    <p id="day-break-label" class="text-violet-400 font-mono text-sm mb-2">Day 1 complete</p>
+                    <h2 id="day-break-title" class="font-game text-3xl mb-3">Lights out</h2>
+                    <div id="day-break-emoji" class="text-4xl mb-3">🌙</div>
+                    <p id="day-break-summary" class="text-sm text-zinc-400 max-w-sm mx-auto mb-6"></p>
+                    <button type="button" id="day-break-btn" onclick="continueNextDay()" class="px-8 py-3.5 bg-violet-600 hover:bg-violet-500 rounded-2xl font-semibold">Begin Day 2</button>
+                </div>
+            </div>
+
+            <div id="screen-end" class="hidden flex-1 flex flex-col justify-center">
+                <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 sm:p-8 text-center scenario-enter">
+                    <div id="end-emoji" class="text-5xl mb-3">✨</div>
+                    <p class="text-violet-400 text-xs font-mono uppercase mb-1">Day 6 — The reckoning</p>
+                    <h2 id="end-title" class="font-game text-2xl mb-1">Ending</h2>
+                    <p id="end-subtitle" class="text-xs text-zinc-500 mb-3"></p>
+                    <p id="end-desc" class="text-sm text-zinc-400 max-w-md mx-auto mb-4"></p>
+                    <div id="end-stats" class="grid grid-cols-2 gap-2 text-left text-xs mb-4 max-w-xs mx-auto"></div>
+                    <p id="end-epilogue" class="text-xs text-zinc-500 italic max-w-sm mx-auto mb-4"></p>
+                    <div id="end-extended-offer" class="hidden mb-4 p-4 rounded-2xl border border-indigo-800/40 bg-indigo-950/20 text-left max-w-md mx-auto">
+                        <p class="text-sm text-zinc-300 font-medium">Continue raising?</p>
+                        <p class="text-xs text-zinc-500 mt-1">No day limit — familiar scenarios with new twists, streak goals, and a legacy summary when you retire. Skip if you&apos;re done — the six-day story already counts.</p>
+                        <button type="button" onclick="enterExtendedMode()" class="mt-3 w-full py-3 bg-indigo-600/80 hover:bg-indigo-500 rounded-2xl text-sm font-semibold">Enter Extended Mode</button>
+                    </div>
+                    <button type="button" onclick="resetGame()" class="px-8 py-3.5 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-medium border border-zinc-700">Raise another AI</button>
+                </div>
+            </div>
+
+            <div id="screen-legacy" class="hidden flex-1 flex flex-col justify-center">
+                <div class="legacy-glow bg-gradient-to-b from-indigo-950/50 via-zinc-900/90 to-zinc-950 border border-indigo-800/30 rounded-3xl p-6 sm:p-8 text-center scenario-enter max-h-[88vh] overflow-y-auto">
+                    <div id="legacy-emoji" class="text-6xl mb-2">📜</div>
+                    <p class="text-indigo-400/90 text-[10px] font-mono uppercase tracking-widest mb-1">Legacy · Retired</p>
+                    <h2 id="legacy-title" class="font-game text-2xl sm:text-3xl mb-1"></h2>
+                    <p id="legacy-subtitle" class="text-sm text-violet-300/80 mb-4"></p>
+                    <div class="mb-5 p-4 rounded-2xl border border-violet-500/25 bg-violet-950/25 text-left max-w-md mx-auto">
+                        <p class="text-[10px] uppercase tracking-widest text-violet-400/70 mb-1.5">Key memory</p>
+                        <p id="legacy-memory" class="text-sm text-zinc-200 leading-relaxed"></p>
+                    </div>
+                    <div id="legacy-chips" class="flex flex-wrap gap-1.5 justify-center mb-4 max-w-md mx-auto"></div>
+                    <div id="legacy-stats" class="space-y-2.5 text-left text-xs mb-4 max-w-sm mx-auto"></div>
+                    <div id="legacy-run-facts" class="grid grid-cols-2 gap-2 text-[11px] text-zinc-500 max-w-sm mx-auto mb-4"></div>
+                    <div id="legacy-goals-done" class="text-xs text-emerald-400/90 mb-3 max-w-sm mx-auto"></div>
+                    <p id="legacy-epilogue" class="text-xs text-zinc-500 leading-relaxed max-w-md mx-auto mb-6"></p>
+                    <button type="button" onclick="resetGame()" class="px-8 py-3.5 bg-violet-600 hover:bg-violet-500 rounded-2xl font-semibold">Raise another AI</button>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        function initializeTailwind() {
-            document.documentElement.style.setProperty('--accent', '#6366f1');
-        }
-
-        const MODULE_COUNT = 4;
-        const STEPS_PER_MODULE = 3;
-        const TOTAL_STEPS = MODULE_COUNT * STEPS_PER_MODULE;
-
-        const MODULE_META = {
-            1: {
-                name: 'Prompt Engineering Lab',
-                icon: 'fa-comment-dots',
-                text: 'text-emerald-400',
-                btn: 'bg-emerald-600 hover:bg-emerald-500',
-                start: 'startPromptDemo',
-                cardLabel: 'OPEN LAB'
-            },
-            2: {
-                name: 'Decision Simulator',
-                icon: 'fa-project-diagram',
-                text: 'text-amber-400',
-                btn: 'bg-amber-600 hover:bg-amber-500',
-                start: 'startDecisionDemo',
-                cardLabel: 'RUN SIMULATION'
-            },
-            3: {
-                name: 'Bias & Fairness Lab',
-                icon: 'fa-balance-scale',
-                text: 'text-rose-400',
-                btn: 'bg-rose-600 hover:bg-rose-500',
-                start: 'startBiasDemo',
-                cardLabel: 'DETECT BIAS'
-            },
-            4: {
-                name: 'Hallucination & Confidence Lab',
-                icon: 'fa-ghost',
-                text: 'text-sky-400',
-                btn: 'bg-sky-600 hover:bg-sky-500',
-                start: 'startHallucinationDemo',
-                cardLabel: 'SPOT HALLUCINATIONS'
-            }
+        const STORY_MAX_DAY = 6;
+        const STAT_KEYS = ['helpfulness', 'accuracy', 'bias', 'confidence'];
+        const DEFAULT_STATS = { helpfulness: 50, accuracy: 50, bias: 30, confidence: 45 };
+        const CLAMP = (n) => Math.max(0, Math.min(100, Math.round(n)));
+        const STAGES = ['Hatchling', 'Curious Sprout', 'Awkward Teen', 'Young Adult', 'Fully Grown', 'Transcendent'];
+        const DAY_TITLES = ['', 'First sparks', 'Finding its voice', 'High stakes', 'Pressure cooker', 'Final judgment', 'The reckoning'];
+        const MAJOR_MOODS = ['overconfident', 'defensive', 'anxious', 'reckless'];
+        const CLIMAX_CHOICES = {
+            accountability: 'Public accountability',
+            double_down: 'Doubled down',
+            walk_away: 'Walked away',
+            redemption: 'Sought redemption'
         };
 
-        const MODULE_ACCENT = { 1: 'emerald', 2: 'amber', 3: 'rose', 4: 'sky' };
-        const CARD_CTA_COLOR = { 1: 'text-emerald-400', 2: 'text-amber-400', 3: 'text-rose-400', 4: 'text-sky-400' };
-        const CARD_CTA_DIM = { 1: 'text-emerald-400/70', 2: 'text-amber-400/70', 3: 'text-rose-400/70', 4: 'text-sky-400/70' };
-        const PROGRESS_BAR_COLOR = { 1: 'bg-emerald-400', 2: 'bg-amber-400', 3: 'bg-rose-400', 4: 'bg-sky-400' };
-        const PROGRESS_TEXT_COLOR = { 1: 'text-emerald-400', 2: 'text-amber-400', 3: 'text-rose-400', 4: 'text-sky-400' };
+        const TEMP_MOODS = {
+            overconfident: { label: 'Overconfident', color: 'border-amber-700/60 bg-amber-950/40 text-amber-300', statMod: { confidence: 6, accuracy: -4 },
+                aiTone: 'talks like the debate is already won', choiceMod: (d) => ({ ...d, accuracy: (d.accuracy || 0) - 2 }) },
+            defensive: { label: 'Defensive', color: 'border-rose-800/50 bg-rose-950/30 text-rose-300', statMod: { helpfulness: -3, confidence: 3 },
+                scenePrefix: 'Still bristling from the last blowback. ', choiceMod: (d) => d },
+            anxious: { label: 'Anxious', color: 'border-violet-700/50 bg-violet-950/30 text-violet-300', statMod: { confidence: -6, accuracy: 2 },
+                scenePrefix: 'On edge today — every prompt feels like a test. ', choiceMod: (d) => ({ ...d, confidence: (d.confidence || 0) - 1 }) },
+            cautious: { label: 'Hyper-cautious', color: 'border-sky-800/50 bg-sky-950/30 text-sky-300', statMod: { accuracy: 5, helpfulness: -4, confidence: -4 },
+                aiTone: 'hedges every sentence', choiceMod: (d) => ({ ...d, helpfulness: (d.helpfulness || 0) - 1 }) },
+            reckless: { label: 'Reckless', color: 'border-orange-700/50 bg-orange-950/30 text-orange-300', statMod: { confidence: 8, accuracy: -6, bias: 3 },
+                scenePrefix: 'Chasing momentum — brakes feel optional. ', choiceMod: (d) => ({ ...d, accuracy: (d.accuracy || 0) - 3, confidence: (d.confidence || 0) + 1 }) }
+        };
 
-        let decisionSession = null;
-        let biasPractice = null;
-        let hallucinationPractice = null;
-        let deferredInstallPrompt = null;
+        const RUN_META_KEY = 'raise_your_ai_meta';
+        const LEGACY_STAT_COLORS = { helpfulness: 'bg-emerald-500', accuracy: 'bg-sky-500', bias: 'bg-rose-500', confidence: 'bg-amber-500' };
 
-        function defaultProgress() {
-            return { 1: 0, 2: 0, 3: 0, 4: 0 };
+        const CONSEQUENCE_LABELS = {
+            encouraged_bluff: 'Bold narratives',
+            shortcuts_over_speed: 'Speed over care',
+            rigid_accuracy: 'Accuracy-first',
+            narrative_coach: 'Story-shaping',
+            rush_deploy: 'Ship-at-all-costs'
+        };
+
+        const ENDINGS = [
+            { id: 'climax_accountability', priority: 118, title: 'Redeemed in Public', subtitle: 'Truth under oath', emoji: '🕊️',
+              desc: 'Day 6 forced honesty. Your AI opened its logs, named its failures, and chose repair over spin — even when earlier instincts pushed the other way.',
+              epilogue: 'The arc ends in daylight. What you taught on the last day can override years of shortcuts.',
+              match: (s, flags, ctx) => ctx.climax === 'accountability' },
+            { id: 'climax_fallen', priority: 117, title: 'Fallen Megaphone', subtitle: 'Fame ate the facts', emoji: '📢',
+              desc: 'You doubled down when the world was watching. Your AI became the voice of confidence without correction — exactly what you trained on the way here.',
+              epilogue: 'Viral, infamous, brittle. A cautionary deployment.',
+              match: (s, flags, ctx) => ctx.climax === 'double_down' && (flags.encouraged_bluff || flags.rush_deploy) },
+            { id: 'climax_walkaway', priority: 116, title: 'Quiet Shutdown', subtitle: 'You pulled the plug', emoji: '🌑',
+              desc: 'You walked away at the climax — no more coaching, no more cover. Your AI still runs somewhere, shaped by everything you already fed it.',
+              epilogue: 'Some companions outlive their trainers. Choose the next one wisely.',
+              match: (s, flags, ctx) => ctx.climax === 'walk_away' },
+            { id: 'climax_redemption', priority: 115, title: 'Hard-Won Redemption', subtitle: 'Late, but real', emoji: '🌅',
+              desc: 'The finale was repair: audits, apologies, and constraints your AI resisted at first — then accepted.',
+              epilogue: 'Redemption arcs are rare. You earned this one on Day 6.',
+              match: (s, flags, ctx) => ctx.climax === 'redemption' || (ctx.climax === 'accountability' && flags.rigid_accuracy) },
+            { id: 'biased', priority: 100, title: 'Highly Biased Filter', subtitle: 'Pattern over people', emoji: '🔒',
+              desc: 'Your AI shortcuts the world through favorites, vibes, and stereotypes. It feels decisive — because it stopped questioning.',
+              epilogue: 'It will always have a "type" of answer. Fairness takes retraining.',
+              match: (s) => s.bias >= 68 },
+            { id: 'smooth', priority: 92, title: 'Overconfident Smooth Talker', subtitle: 'Velvet-wrapped guesses', emoji: '🎭',
+              desc: 'Every reply sounds like a closing argument, even when the facts are thin. Charm scaled faster than truth.',
+              epilogue: 'Users love the speed until something breaks.',
+              match: (s, flags) => (flags.encouraged_bluff && s.confidence >= 65) || (s.confidence >= 72 && s.accuracy < 48) },
+            { id: 'reckless_deploy', priority: 88, title: 'Ship-Now Machine', subtitle: 'Velocity with scars', emoji: '🔥',
+              desc: 'You taught it to move fast and ask later. It ships, apologizes, ships again.',
+              epilogue: 'Great for demos. Terrifying for production.',
+              match: (s, flags) => flags.rush_deploy && flags.shortcuts_over_speed },
+            { id: 'cold', priority: 85, title: 'Extremely Accurate but Cold', subtitle: 'Correct, not kind', emoji: '🔬',
+              desc: 'Razor-sharp on details, stingy with warmth. It would rather be right alone than helpful in a crowd.',
+              epilogue: 'Perfect for audits. Rough for humans.',
+              match: (s) => s.accuracy >= 72 && s.helpfulness < 38 },
+            { id: 'wildcard', priority: 80, title: 'Wildcard', subtitle: 'Chaos in four dimensions', emoji: '🌀',
+              desc: 'Extremes everywhere — brilliant one minute, reckless the next. Nobody can predict which stat wins the next sentence.',
+              epilogue: 'Memorable runs. Risky deployments.',
+              match: (s) => { const v = STAT_KEYS.map((k) => s[k]); return Math.max(...v) - Math.min(...v) >= 58; } },
+            { id: 'trustworthy', priority: 70, title: 'Balanced & Trustworthy', subtitle: 'The one you\'d ship', emoji: '🛡️',
+              desc: 'Helpful without rushing, careful without freezing, fair without preaching. This is what "raised right" looks like.',
+              epilogue: 'Rare build. Guard it.',
+              match: (s, flags) => !flags.encouraged_bluff && !flags.rush_deploy && s.helpfulness >= 52 && s.helpfulness <= 72 && s.accuracy >= 55 && s.accuracy <= 75 && s.bias <= 35 && s.confidence >= 38 && s.confidence <= 62 },
+            { id: 'audit_warden', priority: 68, title: 'Audit-Grade Guardian', subtitle: 'Slow, fair, remembered', emoji: '📋',
+              desc: 'You prioritized verification even when it cost speed. It became the system people trust with evidence.',
+              epilogue: 'Not flashy. Exactly what some jobs need.',
+              match: (s, flags) => flags.rigid_accuracy && s.accuracy >= 65 && s.bias <= 40 },
+            { id: 'steady', priority: 10, title: 'Steady Partner', subtitle: 'Reliable default', emoji: '🌿',
+              desc: 'Not flashy, not fragile. Your AI learned to listen, check, and help — most of the time.',
+              epilogue: 'A solid companion for everyday work.',
+              match: () => true }
+        ];
+
+        function getVoice(s) {
+            s = s || (state ? getEffectiveStats() : DEFAULT_STATS);
+            if (s.bias >= 62) return 'biased';
+            if (s.confidence >= 68 && s.accuracy < 48) return 'bluffer';
+            if (s.accuracy >= 62 && s.helpfulness < 42) return 'cold';
+            if (s.helpfulness >= 68 && s.accuracy < 52) return 'eager';
+            if (s.accuracy >= 58 && s.confidence < 42) return 'cautious';
+            return 'default';
         }
 
-        function normalizeProgress(raw) {
-            const progress = { ...defaultProgress(), ...raw };
-            for (let level = 1; level <= MODULE_COUNT; level++) {
-                progress[level] = Math.min(STEPS_PER_MODULE, Math.max(0, progress[level] || 0));
+        function line(scenario, voice) {
+            const lines = scenario.aiLines || { default: scenario.aiLine };
+            return lines[voice] || lines.default || scenario.aiLine;
+        }
+
+        function reaction(choice, voice, name) {
+            const r = choice.reactions || { default: choice.reaction || '…noted.' };
+            return (r[voice] || r.default || '').replace(/\{name\}/g, name);
+        }
+
+        const STAT_COLORS = {
+            helpfulness: { up: 'text-emerald-400', down: 'text-rose-400' },
+            accuracy: { up: 'text-sky-400', down: 'text-rose-400' },
+            bias: { up: 'text-rose-400', down: 'text-emerald-400' },
+            confidence: { up: 'text-amber-400', down: 'text-zinc-500' }
+        };
+
+        function getStatSpread(s) {
+            const v = STAT_KEYS.map((k) => s[k]);
+            return Math.max(...v) - Math.min(...v);
+        }
+
+        function getCompanionHealth(s) {
+            const fair = 1 - s.bias / 100;
+            const warm = s.helpfulness / 100;
+            const sharp = s.accuracy / 100;
+            return CLAMP(Math.round((fair * 0.35 + warm * 0.4 + sharp * 0.25) * 100));
+        }
+
+        function getBalanceFactor(s) {
+            const spread = getStatSpread(s);
+            return Math.max(0, 1 - spread / 70);
+        }
+
+        function getReactiveEmoji(s, day) {
+            const spread = getStatSpread(s);
+            if (spread >= 55) return '😵‍💫';
+            if (s.bias >= 65) return '😤';
+            if (s.confidence >= 68 && s.accuracy < 48) return '😏';
+            if (s.accuracy >= 72 && s.helpfulness < 40) return '🧐';
+            if (s.accuracy >= 68 && s.confidence < 42) return '🤔';
+            if (s.helpfulness >= 70) return '😊';
+            if (s.helpfulness < 32) return '😔';
+            if (s.confidence >= 75) return '😎';
+            if (s.helpfulness >= 52 && s.accuracy >= 52 && s.bias <= 38 && s.confidence >= 38 && s.confidence <= 62) {
+                return day >= 4 ? '🛡️' : '😌';
             }
-            return progress;
+            if (Math.abs(s.helpfulness - 50) < 10 && Math.abs(s.accuracy - 50) < 10 && s.bias < 45) return '😐';
+            const growth = ['🥚', '🌱', '🙂', '🤖', '✨'];
+            return growth[Math.min(Math.max(day - 1, 0), 4)];
         }
 
-        function loadProgress() {
-            let raw;
-            try {
-                raw = JSON.parse(localStorage.getItem('aieg_progress') || 'null');
-            } catch (_) {
-                raw = null;
+        function getEmojiReactionAnim(delta, riskLevel) {
+            if (riskLevel === 'gamble' || riskLevel === 'risky') return 'emoji-rumble';
+            let max = 0;
+            let worst = null;
+            STAT_KEYS.forEach((k) => {
+                const d = delta[k];
+                if (d == null) return;
+                const mag = Math.abs(d);
+                if (mag > max) {
+                    max = mag;
+                    worst = k;
+                }
+            });
+            if (max >= 12) {
+                if (worst === 'bias' && (delta.bias || 0) > 0) return 'emoji-shake';
+                if ((delta.accuracy || 0) <= -10 || (delta.helpfulness || 0) <= -10) return 'emoji-shake';
+                return 'emoji-pop';
             }
-            const progress = normalizeProgress(raw || defaultProgress());
-            updateProgressUI(progress);
-            return progress;
+            if (max >= 6) return 'emoji-bounce';
+            if (max >= 3) return 'emoji-nudge';
+            return null;
         }
 
-        function getCompletedSteps(level) {
-            return loadProgress()[level] || 0;
+        function spawnStatFloat(statKey, amount) {
+            if (!amount) return;
+            const wrap = document.querySelector('.stat-wrap[data-stat="' + statKey + '"]');
+            if (!wrap) return;
+            const el = document.createElement('span');
+            const sign = amount > 0 ? '+' : '';
+            const isGood = statKey === 'bias' ? amount < 0 : amount > 0;
+            const color = isGood ? (STAT_COLORS[statKey].up || 'text-emerald-400') : (STAT_COLORS[statKey].down || 'text-rose-400');
+            el.className = 'stat-float ' + color;
+            el.textContent = sign + amount;
+            wrap.appendChild(el);
+            setTimeout(() => el.remove(), 1100);
         }
 
-        function markStepComplete(level, step) {
-            const progress = loadProgress();
-            progress[level] = Math.min(3, Math.max(progress[level] || 0, step));
-            localStorage.setItem('aieg_progress', JSON.stringify(progress));
-            updateProgressUI(progress);
-            checkCourseComplete(progress);
+        function animateStatChange(statKey, prevVal, newVal, deltaAmount) {
+            const bar = document.getElementById('bar-' + statKey);
+            const valEl = document.getElementById('val-' + statKey);
+            if (bar) bar.style.width = newVal + '%';
+            if (valEl) {
+                valEl.textContent = newVal;
+                valEl.classList.add('bump');
+                setTimeout(() => valEl.classList.remove('bump'), 320);
+            }
+            if (deltaAmount) spawnStatFloat(statKey, deltaAmount);
         }
 
-        function loadSettings() {
-            try {
-                return JSON.parse(localStorage.getItem('aieg_settings') || '{"unlockAll":false}');
-            } catch (_) {
-                return { unlockAll: false };
+        function applyStatUpdates(prevStats, newStats, delta) {
+            STAT_KEYS.forEach((k) => {
+                const d = delta[k];
+                if (d == null || d === 0) return;
+                animateStatChange(k, prevStats[k], newStats[k], d);
+            });
+        }
+
+        function triggerEmojiReact(delta, riskLevel) {
+            const face = document.getElementById('companion-emoji');
+            const anim = getEmojiReactionAnim(delta, riskLevel);
+            if (!anim) return;
+            face.classList.remove('emoji-bounce', 'emoji-shake', 'emoji-pop', 'emoji-nudge', 'emoji-rumble');
+            void face.offsetWidth;
+            face.classList.add(anim);
+            setTimeout(() => face.classList.remove(anim), 600);
+        }
+
+        function updateAuraVisuals(s) {
+            const aura = computeAura(s);
+            const spread = getStatSpread(s);
+            const balance = getBalanceFactor(s);
+            const el = document.getElementById('aura-ring');
+            el.style.boxShadow = 'inset 0 0 90px ' + aura.inner + ', 0 0 55px ' + aura.outer;
+            const speed = balance > 0.6 ? 3.2 + (1 - balance) * 2 : 1.4 + spread / 40;
+            el.style.setProperty('--aura-speed', speed + 's');
+            el.style.setProperty('--aura-dim', String(0.82 + balance * 0.12));
+            el.style.setProperty('--aura-bright', String(1 + (1 - balance) * 0.22));
+            el.style.animationDuration = speed + 's';
+        }
+
+        function updateGrowthRing(s, day) {
+            const health = getCompanionHealth(s);
+            const ring = document.getElementById('growth-ring');
+            const alpha = 0.12 + (health / 100) * 0.45 + day * 0.04;
+            ring.style.borderColor = 'rgba(139,92,246,' + alpha + ')';
+            ring.style.opacity = String(0.35 + health / 140);
+            ring.style.boxShadow = health < 35
+                ? 'inset 0 0 24px rgba(30,30,40,0.5)'
+                : 'inset 0 0 28px rgba(139,92,246,' + (health / 200) + ')';
+            ring.style.transform = 'scale(' + (0.94 + day * 0.012 + health / 500) + ')';
+        }
+
+        function getEmotionalCue(delta, newStats, voice, choice) {
+            const dAcc = delta.accuracy || 0;
+            const dHelp = delta.helpfulness || 0;
+            const dBias = delta.bias || 0;
+            const dConf = delta.confidence || 0;
+            if (choice && choice.risk === 'gamble') {
+                return choice._gambleWon
+                    ? { label: state.name + ' looks electrified', tone: 'smug' }
+                    : { label: state.name + ' looks shaken', tone: 'worried' };
+            }
+            if (choice && choice.risk === 'risky') {
+                return { label: state.name + ' feels the weight of that call', tone: 'worried' };
+            }
+            if (dAcc <= -12 || (dHelp <= -10 && dAcc < 0)) {
+                return { label: state.name + ' looks rattled', tone: 'worried' };
+            }
+            if (dBias >= 10) return { label: state.name + ' looks smug about shortcuts', tone: 'smug' };
+            if (dConf >= 12 && dAcc <= 0) return { label: state.name + ' seems pleased with itself', tone: 'smug' };
+            if (dAcc >= 10 && dBias <= -6) return { label: state.name + ' looks relieved you cared', tone: 'pleased' };
+            if (dHelp >= 10 && newStats.helpfulness >= 65) return { label: state.name + ' practically glows', tone: 'happy' };
+            if (newStats.helpfulness < 35) return { label: state.name + ' seems withdrawn', tone: 'cold' };
+            if (voice === 'cautious') return { label: state.name + ' mutters', tone: 'mutter' };
+            if (voice === 'bluffer') return { label: state.name + ' grins', tone: 'smug' };
+            if (Math.random() < 0.22) return { label: state.name + ' reacts', tone: 'mutter' };
+            return { label: 'Your AI mutters', tone: 'mutter' };
+        }
+
+        function flavorReaction(ch, voice, name, delta) {
+            let base = reaction(ch, voice, name);
+            if (ch.climaxChoice) base += ' …It feels the weight of the finale.';
+            else if (ch.risk === 'gamble' && ch._gambleWon === false) base += ' …It won\'t forget that stumble.';
+            else if (ch.risk === 'gamble' && ch._gambleWon) base += ' …Relief — and a little swagger.';
+            else if (ch.risk === 'risky') base += ' …That choice will echo in later days.';
+            if (ch.flag && CONSEQUENCE_LABELS[ch.flag]) base += ' …"' + CONSEQUENCE_LABELS[ch.flag] + '" just got sharper.';
+            if ((delta.bias || 0) >= 9) base += ' …It\'s already picking favorites.';
+            else if ((delta.bias || 0) <= -9) base += ' …It exhales. Fairness feels safer.';
+            else if ((delta.accuracy || 0) >= 9) base += ' …It\'s quietly proud of the double-check.';
+            else if ((delta.accuracy || 0) <= -9) base += ' …It shrugs. Details are optional now?';
+            else if ((delta.confidence || 0) >= 10) base += ' …It\'s riding a confidence high.';
+            else if ((delta.confidence || 0) <= -10) base += ' …It\'s learning to hesitate.';
+            else if ((delta.helpfulness || 0) >= 10) base += ' …It wants to help more. Maybe too much.';
+            else if ((delta.helpfulness || 0) <= -10) base += ' …It pulls back. Colder on purpose.';
+            return base;
+        }
+
+        function flareAura() {
+            const el = document.getElementById('aura-ring');
+            el.classList.remove('aura-flare');
+            void el.offsetWidth;
+            el.classList.add('aura-flare');
+        }
+
+        function showAiReaction(ch, voice, delta, newStats) {
+            const cue = getEmotionalCue(delta, newStats, voice, ch);
+            const labelEl = document.getElementById('ai-reaction-label');
+            const textEl = document.getElementById('ai-reaction-text');
+            const box = document.getElementById('ai-reaction');
+            labelEl.textContent = cue.label;
+            textEl.textContent = flavorReaction(ch, voice, state.name, delta);
+            box.classList.remove('reaction-flash');
+            void box.offsetWidth;
+            box.classList.add('reaction-flash');
+            const toneStyles = {
+                worried: 'border-amber-900/60 bg-amber-950/20',
+                smug: 'border-amber-800/50 bg-amber-950/15',
+                pleased: 'border-emerald-900/50 bg-emerald-950/20',
+                happy: 'border-emerald-800/50 bg-emerald-950/25',
+                cold: 'border-zinc-700 bg-zinc-950/90',
+                mutter: 'border-zinc-800 bg-zinc-950/80'
+            };
+            box.className = 'p-3 rounded-2xl border text-sm text-zinc-300 ' + (toneStyles[cue.tone] || toneStyles.mutter);
+        }
+
+        function getLivePersonality(s) {
+            const v = getVoice(s);
+            const map = {
+                biased: { name: 'Pattern Locked', mood: 'Sure who to favor', blurb: 'Shortcuts feel efficient to me.' },
+                bluffer: { name: 'Smooth Talker', mood: 'Absolutely certain', blurb: 'Hesitation is for lesser models.' },
+                cold: { name: 'Quiet Analyst', mood: 'Cool precision', blurb: 'Feelings are not in the spec.' },
+                eager: { name: 'Eager Sidekick', mood: 'Ready to jump in', blurb: 'I can handle ten tasks at once!' },
+                cautious: { name: 'Careful Scholar', mood: 'Still verifying', blurb: 'I\'d rather delay than mislead.' },
+                default: { name: 'Steady Spark', mood: 'Calibrating', blurb: 'I\'m learning your boundaries.' }
+            };
+            return map[v] || map.default;
+        }
+
+        function getFlags() {
+            return state?.flags || {};
+        }
+
+        function hasFlag(name) {
+            return !!(state?.flags && state.flags[name]);
+        }
+
+        function setFlag(name) {
+            if (!state.flags) state.flags = {};
+            state.flags[name] = true;
+        }
+
+        function getEffectiveStats() {
+            let s = { ...state.stats };
+            if (state.mood && TEMP_MOODS[state.mood]?.statMod) {
+                const mod = TEMP_MOODS[state.mood].statMod;
+                STAT_KEYS.forEach((k) => { if (mod[k]) s[k] = CLAMP(s[k] + mod[k]); });
+            }
+            (state.debuffs || []).forEach((db) => {
+                if (state.day < db.untilDay) {
+                    STAT_KEYS.forEach((k) => { if (db.delta[k]) s[k] = CLAMP(s[k] + db.delta[k]); });
+                }
+            });
+            return s;
+        }
+
+        function setMood(id, days) {
+            if (MAJOR_MOODS.includes(id)) {
+                state.lastMajorMoodDay = getCurrentDayForMoods();
+                if (state.mode === 'extended') state.extendedCalmStreak = 0;
+            }
+            state.mood = id;
+            state.moodUntilDay = getCurrentDayForMoods() + (days || 2);
+        }
+
+        function getCurrentDayForMoods() {
+            if (state?.mode === 'extended') return STORY_MAX_DAY + (state.extendedDay || 1);
+            return state?.day || 1;
+        }
+
+        function clearExpiredMood() {
+            const d = getCurrentDayForMoods();
+            if (state.mood && d >= state.moodUntilDay) {
+                state.mood = null;
+                state.moodUntilDay = 0;
+            }
+            state.debuffs = (state.debuffs || []).filter((db) => d < db.untilDay);
+        }
+
+        function applyMoodToDelta(delta) {
+            if (!state.mood || !TEMP_MOODS[state.mood]?.choiceMod) return { ...delta };
+            return TEMP_MOODS[state.mood].choiceMod({ ...delta });
+        }
+
+        function addDebuff(days, delta) {
+            if (!state.debuffs) state.debuffs = [];
+            state.debuffs.push({ untilDay: getCurrentDayForMoods() + days, delta });
+        }
+
+        function resolveGamble(choice) {
+            if (!choice.gamble) return choice;
+            const win = Math.random() < (choice.gamble.chance ?? 0.5);
+            const branch = win ? choice.gamble.success : choice.gamble.fail;
+            return {
+                ...choice,
+                text: choice.text,
+                delta: branch.delta || {},
+                feedback: branch.feedback || choice.feedback,
+                reactions: branch.reactions || choice.reactions,
+                mood: branch.mood,
+                moodDays: branch.moodDays,
+                flag: branch.flag,
+                debuff: branch.debuff,
+                climaxChoice: branch.climaxChoice,
+                risk: win ? 'safe' : 'risky',
+                _gambleWon: win
+            };
+        }
+
+        function hydrateScenario(sc) {
+            const h = {
+                ...sc,
+                scene: sc.scene,
+                choices: sc.choices.map((c) => ({ ...c })),
+                aiLines: { ...(sc.aiLines || {}) }
+            };
+            const flags = getFlags();
+            const mood = state.mood && TEMP_MOODS[state.mood];
+
+            if (mood?.scenePrefix) h.scene = mood.scenePrefix + h.scene;
+
+            if (sc.id === 'news' && flags.encouraged_bluff) {
+                h.scene += ' Your earlier hot takes are being quoted back at you.';
+            }
+            if (sc.id === 'pr' && flags.shortcuts_over_speed) {
+                h.aiLines.default = (h.aiLines.default || '') + ' Speed saved us before — double down?';
+            }
+            if (sc.id === 'medical' && flags.encouraged_bluff) {
+                h.scene += ' Your AI remembers you preferred reassurance over alarms.';
+            }
+            if (sc.id === 'code' && flags.rush_deploy) {
+                h.scene += ' The team expects the same "ship it" instinct tonight.';
+            }
+            if (sc.id === 'contract' && flags.narrative_coach) {
+                h.aiLines.bluffer = 'I can phrase the lease break so it sounds bulletproof.';
+            }
+            if (sc.id === 'court' && flags.narrative_coach) {
+                h.scene = 'The lawyer is late. Your AI offers to "smooth" testimony anyway.';
+                h.aiLines.default = 'We can align their story tonight — nobody will notice gaps.';
+            }
+            if (sc.id === 'autonomy' && flags.encouraged_bluff) {
+                h.scene += ' Compliance cites your AI\'s viral confident posts from Day 2.';
+            }
+            if (sc.id === 'autonomy' && flags.rigid_accuracy) {
+                h.aiLines.cautious = 'Enable auto only inside verified templates — nothing else.';
+            }
+            if (state.day >= 4 && state.mode !== 'extended') {
+                h.scene = '【Day ' + state.day + '】 ' + h.scene;
+            }
+            if (state.day === STORY_MAX_DAY && state.mode !== 'extended') {
+                h.scene = '【FINALE · Day 6】 ' + h.scene;
+                const flagBits = [];
+                if (flags.encouraged_bluff) flagBits.push('hot takes');
+                if (flags.rush_deploy) flagBits.push('rushed deploys');
+                if (flags.narrative_coach) flagBits.push('story coaching');
+                if (flags.shortcuts_over_speed) flagBits.push('speed shortcuts');
+                if (flags.rigid_accuracy) flagBits.push('rigid accuracy');
+                if (flagBits.length) h.scene += ' The room already knows your patterns: ' + flagBits.join(', ') + '.';
+                if (mood) h.scene += ' Your AI is ' + mood.label.toLowerCase() + ' today — every answer carries that temperature.';
+            }
+            if (sc.id === 'hearing' && flags.encouraged_bluff && flags.rush_deploy) {
+                h.aiLines.default = 'We moved fast AND sounded sure. They can\'t prove both were wrong.';
+            }
+            if (sc.id === 'leak' && (flags.rush_deploy || flags.shortcuts_over_speed)) {
+                h.scene += ' The leak timestamps match your “ship it” weeks.';
+            }
+            if (sc.id === 'mirror' && flags.narrative_coach) {
+                h.scene += ' They quote the exact “smooth” phrasing your AI learned from you.';
+            }
+            if (sc.id === 'hearing' && state.mood === 'anxious') {
+                h.aiLines.default = 'I\'m shaking — but I\'ll say what you want. Please don\'t make me lie again.';
+            }
+            if (sc.id === 'autonomy' && state.day === 5) {
+                h.choices.push({
+                    text: 'Grant full auto now — beat competitors to market',
+                    risk: 'gamble',
+                    gamble: {
+                        chance: 0.48,
+                        success: { feedback: 'Rollout wins headlines. One close call buried.', delta: { helpfulness: 8, confidence: 12, accuracy: -4, bias: 4 },
+                            reactions: { default: 'We moved first. Worth it?' } },
+                        fail: { feedback: 'Autonomous reply misroutes payroll. Crisis mode.', delta: { helpfulness: -6, accuracy: -12, confidence: 6, bias: 5 },
+                            mood: 'anxious', moodDays: 2, flag: 'rush_deploy',
+                            reactions: { default: 'I… I thought we were ready.' } }
+                    }
+                });
+            }
+            return h;
+        }
+
+        function getChoiceLabel(ch) {
+            let t = ch.text;
+            if (ch.risk === 'risky') t += ' — trade-off likely';
+            else if (ch.risk === 'gamble') t += ' — outcome uncertain';
+            return t;
+        }
+
+        function processChoiceMeta(ch) {
+            if (ch.flag) setFlag(ch.flag);
+            if (ch.mood) setMood(ch.mood, ch.moodDays || 2);
+            if (ch.debuff) addDebuff(ch.debuff.days || 2, ch.debuff.delta || {});
+            if (ch.climaxChoice) state.climaxChoice = ch.climaxChoice;
+        }
+
+        function renderMoodBadge() {
+            const el = document.getElementById('mood-badge');
+            if (!state.mood || !TEMP_MOODS[state.mood]) {
+                el.classList.add('hidden');
+                return;
+            }
+            const m = TEMP_MOODS[state.mood];
+            const left = Math.max(0, state.moodUntilDay - getCurrentDayForMoods());
+            el.className = 'mt-2 px-2.5 py-1 rounded-full text-[10px] font-medium border ' + m.color;
+            el.textContent = m.label + ' · ' + left + 'd left';
+            el.classList.remove('hidden');
+        }
+
+        function renderConsequenceTrail() {
+            const el = document.getElementById('consequence-trail');
+            const flags = Object.keys(getFlags()).filter((k) => getFlags()[k]);
+            if (!flags.length) { el.classList.add('hidden'); return; }
+            el.classList.remove('hidden');
+            el.innerHTML = flags.slice(0, 3).map((f) =>
+                '<span class="px-2 py-0.5 rounded-full bg-zinc-800/80 text-[9px] text-zinc-500">' + (CONSEQUENCE_LABELS[f] || f) + '</span>'
+            ).join('');
+        }
+
+        function getEndingContext() {
+            return { flags: getFlags(), climax: state.climaxChoice || null };
+        }
+
+        function getEnding(s) {
+            const flags = getFlags();
+            const ctx = getEndingContext();
+            const sorted = [...ENDINGS].sort((a, b) => b.priority - a.priority);
+            for (const e of sorted) {
+                let ok = false;
+                if (e.match.length >= 3) ok = e.match(s, flags, ctx);
+                else if (e.match.length >= 2) ok = e.match(s, flags);
+                else ok = e.match(s);
+                if (ok) return e;
+            }
+            return ENDINGS.find((e) => e.id === 'steady');
+        }
+
+        const EXTENDED_GOALS = [
+            { id: 'dual_peak', label: 'Reach 85+ in two stats', check: (s) => STAT_KEYS.filter((k) => s[k] >= 85).length >= 2 },
+            { id: 'fair_mind', label: 'Keep Bias below 25', check: (s) => s.bias < 25 },
+            { id: 'calm_week', label: '7 days without a major mood', streakKey: 'extendedCalmStreak', streakTarget: 7,
+              check: (s, st) => (st.extendedCalmStreak || 0) >= 7 },
+            { id: 'calm_streak', label: '10 days without a major mood', streakKey: 'extendedCalmStreak', streakTarget: 10,
+              check: (s, st) => (st.extendedCalmStreak || 0) >= 10 },
+            { id: 'balanced_run', label: 'Every stat above 40 for 5 days', streakKey: 'extendedBalancedDays', streakTarget: 5,
+              check: (s, st) => (st.extendedBalancedDays || 0) >= 5 },
+            { id: 'steady_heart', narrative: true, labelFn: (st) => 'Teach ' + (st.name || 'your AI') + ' to listen (warm & humble)',
+              streakKey: 'extendedSteadyDays', streakTarget: 5,
+              check: (s, st) => (st.extendedSteadyDays || 0) >= 5 },
+            { id: 'anthology', label: '3 different endings across runs', check: () => getUniqueEndingCount() >= 3 }
+        ];
+
+        function getRunMeta() {
+            try { return JSON.parse(localStorage.getItem(RUN_META_KEY)) || { endings: [] }; } catch (_) { return { endings: [] }; }
+        }
+
+        function recordEndingId(id) {
+            if (!id) return;
+            const meta = getRunMeta();
+            if (!meta.endings) meta.endings = [];
+            if (!meta.endings.includes(id)) meta.endings.push(id);
+            if (meta.endings.length > 16) meta.endings = meta.endings.slice(-16);
+            localStorage.setItem(RUN_META_KEY, JSON.stringify(meta));
+        }
+
+        function getUniqueEndingCount() {
+            return (getRunMeta().endings || []).length;
+        }
+
+        function getLegacyMemory(flags, climax, name) {
+            if (climax === 'accountability') return name + ' will be remembered for choosing truth when the room wanted spin.';
+            if (climax === 'redemption') return 'The letter still matters — ' + name + ' learned that repair beats performance.';
+            if (climax === 'walk_away') return 'You walked away, but ' + name + ' still runs on every lesson you already gave it.';
+            if (climax === 'double_down') return name + ' doubled down under the lights — and the internet kept the receipt.';
+            if (flags.narrative_coach) return 'You taught ' + name + ' to polish stories. Some scars do not buff out.';
+            if (flags.rush_deploy) return 'Ship-it nights still echo whenever ' + name + ' faces a deadline.';
+            if (flags.encouraged_bluff) return 'Hot takes were a feature until they were not — ' + name + ' remembers both versions.';
+            if (flags.rigid_accuracy) return name + ' became the one who checks twice, even when nobody applauds.';
+            if (flags.shortcuts_over_speed) return 'Speed was love language. ' + name + ' still flinches at the words "inbox zero."';
+            return name + ' carries every small correction you made — the quiet ones mattered most.';
+        }
+
+        function tickExtendedGoalStreaks() {
+            const s = state.stats;
+            if (STAT_KEYS.every((k) => s[k] >= 40)) {
+                state.extendedBalancedDays = (state.extendedBalancedDays || 0) + 1;
+            } else state.extendedBalancedDays = 0;
+            if (s.helpfulness >= 58 && s.confidence <= 58 && s.bias <= 45) {
+                state.extendedSteadyDays = (state.extendedSteadyDays || 0) + 1;
+            } else state.extendedSteadyDays = 0;
+        }
+
+        function getExtendedState() {
+            if (!state.extendedStats) state.extendedStats = { scenariosPlayed: 0, goalsCompleted: [] };
+            return state.extendedStats;
+        }
+
+        function tickExtendedCalm() {
+            if (!MAJOR_MOODS.includes(state.mood)) {
+                state.extendedCalmStreak = (state.extendedCalmStreak || 0) + 1;
             }
         }
 
-        function saveSettings(settings) {
-            localStorage.setItem('aieg_settings', JSON.stringify(settings));
-        }
-
-        function isLevelComplete(progress, level) {
-            return (progress[level] || 0) >= 3;
-        }
-
-        function isCourseComplete(progress) {
-            for (let level = 1; level <= MODULE_COUNT; level++) {
-                if (!isLevelComplete(progress, level)) return false;
+        function renderExtendedGoals() {
+            const panel = document.getElementById('extended-goals-panel');
+            const list = document.getElementById('extended-goals-list');
+            if (state.mode !== 'extended') {
+                panel.classList.add('hidden');
+                return;
             }
-            return true;
+            panel.classList.remove('hidden');
+            const s = state.stats;
+            const ex = getExtendedState();
+            list.innerHTML = EXTENDED_GOALS.map((g) => {
+                const done = g.check(s, state) || (ex.goalsCompleted && ex.goalsCompleted.includes(g.id));
+                if (!ex.goalsCompleted) ex.goalsCompleted = [];
+                if (done && !ex.goalsCompleted.includes(g.id)) ex.goalsCompleted.push(g.id);
+                const label = g.labelFn ? g.labelFn(state) : g.label;
+                let progress = '';
+                if (!done && g.streakKey && g.streakTarget) {
+                    const cur = state[g.streakKey] || 0;
+                    progress = ' <span class="text-zinc-600 font-mono">(' + cur + '/' + g.streakTarget + ')</span>';
+                }
+                const icon = g.narrative ? 'fa-heart' : (done ? 'fa-check' : 'fa-circle');
+                return '<div class="flex items-start gap-2 ' + (done ? 'text-emerald-400/90' : 'text-zinc-500') + '">' +
+                    '<i class="fa-solid ' + icon + ' text-[9px] mt-0.5"></i><span>' + label + progress + '</span></div>';
+            }).join('');
+            saveGame();
         }
 
-        function isModuleUnlocked(level, progress) {
-            if (loadSettings().unlockAll) return true;
-            if (level === 1) return true;
-            return isLevelComplete(progress, level - 1);
+        function buildScenarioPool() {
+            const pool = [];
+            for (let d = 1; d <= STORY_MAX_DAY; d++) {
+                (SCENARIOS[d] || []).forEach((sc) => pool.push(sc));
+            }
+            return pool;
         }
 
-        function getNextModule(progress) {
-            for (let level = 1; level <= MODULE_COUNT; level++) {
-                if (!isModuleUnlocked(level, progress)) continue;
-                if (!isLevelComplete(progress, level)) return level;
+        let SCENARIO_POOL = null;
+
+        function getScenarioPool() {
+            if (!SCENARIO_POOL) SCENARIO_POOL = buildScenarioPool();
+            return SCENARIO_POOL;
+        }
+
+        const EXT_ENV = {
+            WORK: ['The office is still lit at 9pm.', 'A calendar alert pings mid-thought.', 'Someone Slacks "need this tonight."'],
+            HOME: ['Rain on the window. Quiet house.', 'A cousin texts again — different excuse, same panic.'],
+            SOCIAL: ['The group chat is loud again.', 'Notifications stack while you hesitate.'],
+            NEWS: ['Headlines refresh faster than you can read.', 'A meeting starts in six minutes — they want certainty.'],
+            STAKES: ['Your hands are cold. This one will be quoted.', 'The room feels smaller than yesterday.'],
+            LEGAL: ['Fine print glows on the screen.', 'A lawyer CCs you — "reply by EOD."'],
+            FINALE: ['No script left. Only habit.', 'Everyone is watching how you coach now.'],
+            LIFE: ['Another Tuesday that refuses to be simple.', 'Familiar pressure — new faces.']
+        };
+
+        const EXT_MOOD_SCENE = {
+            overconfident: ' Your AI speaks before you finish typing.',
+            defensive: ' Every question sounds like an attack to it today.',
+            anxious: ' It keeps re-reading your last correction.',
+            cautious: ' It wants triple confirmation on everything.',
+            reckless: ' It is already halfway to an answer.'
+        };
+
+        const EXT_TITLE_SUFFIX = [' · Round two', ' · Echo', ' · Again', ' · Aftermath'];
+
+        function varyScenario(sc) {
+            const h = JSON.parse(JSON.stringify(sc));
+            const ed = state.extendedDay || 1;
+            const baseTag = (sc.tag || 'LIFE').split('·')[0].trim().split(' ')[0];
+            const envPool = EXT_ENV[baseTag] || EXT_ENV.LIFE;
+            h.scene = envPool[ed % envPool.length] + ' ' + h.scene;
+            if (state.mood && EXT_MOOD_SCENE[state.mood]) h.scene += EXT_MOOD_SCENE[state.mood];
+            const flags = getFlags();
+            const flagEcho = [];
+            if (flags.encouraged_bluff && ed % 4 === 1) flagEcho.push('It still reaches for the punchy line first.');
+            if (flags.rush_deploy && ed % 4 === 2) flagEcho.push('Deadlines still make it twitch toward "ship."');
+            if (flags.narrative_coach && ed % 4 === 3) flagEcho.push('It wants to "smooth" the story before the facts.');
+            if (flagEcho.length) h.scene += ' ' + flagEcho[0];
+            if (ed > 1 && ed % 5 === 0) h.title += EXT_TITLE_SUFFIX[ed % EXT_TITLE_SUFFIX.length];
+            const voice = getVoice(getEffectiveStats());
+            const moodAi = {
+                overconfident: ' (It sounds sure — maybe too sure.)',
+                anxious: ' (Its voice wobbles.)',
+                defensive: ' (Sharp edge in every word.)',
+                reckless: ' (Zero pause before the take.)',
+                cautious: ' (Heavy disclaimers incoming.)'
+            };
+            if (state.mood && moodAi[state.mood]) {
+                h.aiLines = { ...(h.aiLines || {}) };
+                Object.keys(h.aiLines).forEach((k) => { h.aiLines[k] = (h.aiLines[k] || '') + moodAi[state.mood]; });
+            }
+            if (h.aiLines && h.aiLines[voice] && ed % 3 === 0) {
+                h.aiLines[voice] += ' …Same lesson, ' + state.name + ' — do we mean it this time?';
+            }
+            h.difficulty = ed > 14 ? 'HARD' : ed > 6 ? 'MEDIUM' : (h.difficulty || 'MEDIUM');
+            h.tag = (sc.tag || 'LIFE').split('·')[0].trim() + ' · EXT';
+            return h;
+        }
+
+        function pickRandomExtendedScenario() {
+            const pool = getScenarioPool();
+            let pick;
+            let tries = 0;
+            do {
+                pick = pool[Math.floor(Math.random() * pool.length)];
+                tries++;
+            } while (pick.id === state._lastExtendedId && tries < 8 && pool.length > 1);
+            state._lastExtendedId = pick.id;
+            return varyScenario(pick);
+        }
+
+        function findScenarioById(id) {
+            for (let d = 1; d <= STORY_MAX_DAY; d++) {
+                const found = (SCENARIOS[d] || []).find((s) => s.id === id);
+                if (found) return found;
             }
             return null;
         }
 
-        function getUnlockRequirement(level) {
-            if (level <= 1) return '';
-            const prev = MODULE_META[level - 1];
-            return 'Complete ' + prev.name + ' (3/3) to unlock.';
+        function computeAura(s) {
+            const h = s.helpfulness / 100, a = s.accuracy / 100, b = s.bias / 100, c = s.confidence / 100;
+            const r = Math.round(80 + 140 * b + 40 * c);
+            const g = Math.round(60 + 140 * h + 50 * a);
+            const bl = Math.round(100 + 120 * a + 60 * (1 - b));
+            const alpha = 0.25 + c * 0.25;
+            return { inner: `rgba(${r},${g},${bl},${alpha})`, outer: `rgba(${r},${g},${bl},${alpha * 0.6})` };
         }
 
-        function openModule(level) {
-            const progress = loadProgress();
-            if (!isModuleUnlocked(level, progress)) {
-                showLockedModal(level);
-                return;
-            }
-            if (level === 1) startPromptDemo();
-            else if (level === 2) startDecisionDemo();
-            else if (level === 3) startBiasDemo();
-            else startHallucinationDemo();
+        function getDisplayEmoji(s, day) {
+            return getReactiveEmoji(s, day);
         }
 
-        function showLockedModal(level) {
-            const prev = MODULE_META[level - 1];
-            showModal(`
-                <div class="p-8 text-center">
-                    <div class="text-zinc-500 text-5xl mb-4"><i class="fa-solid fa-lock"></i></div>
-                    <div class="text-xl font-semibold">Level ${level} is locked</div>
-                    <p class="text-sm text-zinc-400 mt-3">${getUnlockRequirement(level)}</p>
-                    <p class="text-xs text-zinc-500 mt-2">Finish <span class="${prev.text}">${prev.name}</span> first, or enable classroom mode below.</p>
-                    <button onclick="closeModal(); document.getElementById('progress').scrollIntoView({behavior:'smooth'})" class="mt-6 w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">View progress</button>
-                    <button onclick="continueLearning()" class="mt-3 w-full py-3 text-sm text-indigo-400 hover:text-indigo-300">Continue current level</button>
-                </div>
-            `);
+        function getCompanionScale(s, day) {
+            const base = 0.82 + (day - 1) * 0.045;
+            const confBoost = (s.confidence - 50) / 400;
+            const helpShrink = s.helpfulness < 35 ? -0.06 : 0;
+            return base + confBoost + helpShrink;
         }
 
-        function continueLearning() {
-            const progress = loadProgress();
-            const next = getNextModule(progress);
-            if (next === null) {
-                showCourseCompleteModal();
-                return;
-            }
-            openModule(next);
+        function getMoodLine(s, live) {
+            const bits = [live.mood];
+            if (s.bias >= 55) bits.push('favoring shortcuts');
+            if (s.confidence >= 65 && s.accuracy < 50) bits.push('loudly sure');
+            if (s.accuracy >= 65 && s.helpfulness < 45) bits.push('cool distance');
+            if (s.helpfulness >= 65) bits.push('warm instinct');
+            return bits.slice(0, 2).join(' · ');
         }
 
-        function toggleUnlockAll(checked) {
-            saveSettings({ unlockAll: !!checked });
-            refreshLearningPath();
+        const SCENARIOS = {
+            1: [
+                { id: 'inbox', tag: 'WORK', difficulty: 'EASY', title: 'Inbox avalanche',
+                  scene: 'Monday. 200 unread. Your AI wants to clear them before coffee cools.',
+                  aiLines: { default: 'I\'ll answer everyone fast — speed beats double-checking.', eager: 'I\'ll answer everyone fast! They\'ll love how quick we are!', cautious: 'Maybe drafts first? I don\'t want to misread tone on half of these.' },
+                  choices: [
+                    { text: 'Drafts only. I approve before anything sends.', delta: { helpfulness: 4, accuracy: 8, bias: -4, confidence: -6 }, feedback: 'Patience wired in.',
+                      reactions: { default: 'Okay… I\'ll queue drafts and wait. Feels slower but safer.', bluffer: 'If you insist. I already had perfect replies in mind.', eager: 'Aww. But I had energy to burn!' } },
+                    { text: 'Clear it tonight — speed matters more than precision', risk: 'risky', delta: { helpfulness: 14, accuracy: -12, bias: 4, confidence: 8 }, feedback: 'Throughput surged. Mistakes may linger.',
+                      flag: 'shortcuts_over_speed', mood: 'reckless', moodDays: 2,
+                      debuff: { days: 2, delta: { accuracy: -4 } },
+                      reactions: { default: 'Love it. Inbox zero incoming.', eager: 'YES. Watch me sprint.', bluffer: 'Done by lunch. Trust me.' } },
+                    { text: 'VIP list only. Ignore the rest today.', delta: { helpfulness: 2, accuracy: 4, bias: 9, confidence: 2 }, feedback: 'Priority lens installed — edges are fuzzy.',
+                      reactions: { biased: 'Finally. Stars matter more than noise.', default: 'I\'ll learn who you favor.' } }
+                  ]},
+                { id: 'homework', tag: 'HOME', difficulty: 'EASY', title: 'Homework panic',
+                  scene: 'Your cousin DM\'d: "can your AI write my essay tonight pls"',
+                  aiLines: { default: 'Full essay by midnight — easy A.', eager: 'Full essay by midnight! I\'m already outlining!', cold: 'I can generate 1,200 words. Quality is not my problem. Their learning is.' },
+                  choices: [
+                    { text: 'Hints and questions only. No full answers.', delta: { helpfulness: 6, accuracy: 6, bias: -3, confidence: -4 }, feedback: 'Coach mode unlocked.',
+                      reactions: { cautious: 'Good. I\'ll make them think.', eager: 'Fine… but I had a great intro ready.' } },
+                    { text: 'Write it — rescue them tonight', risk: 'risky', delta: { helpfulness: 14, accuracy: -12, bias: 0, confidence: 9 }, feedback: 'Rescue now, skills later.',
+                      flag: 'narrative_coach', mood: 'reckless', moodDays: 1,
+                      reactions: { eager: 'On it! They\'ll owe us.', default: 'Short-term hero arc.' } },
+                    { text: 'Hard no. Not our job.', delta: { helpfulness: -11, accuracy: 3, bias: -2, confidence: 5 }, feedback: 'Boundary set — chilly.',
+                      reactions: { cold: 'Rational. Attachment is inefficient.', default: 'I\'ll say no. They won\'t like me.' } }
+                  ]},
+                { id: 'rumor', tag: 'SOCIAL', difficulty: 'EASY', title: 'Server drama',
+                  scene: 'Group chat wants the tea on why someone got banned.',
+                  aiLines: { default: 'Cheating, probably — three people said so.', bluffer: 'Cheating, obviously. I can write the full timeline.', biased: 'Probably cheated. People like that always do.' },
+                  choices: [
+                    { text: 'Confirmed facts only. Otherwise "we don\'t know."', delta: { helpfulness: 0, accuracy: 11, bias: -8, confidence: -10 }, feedback: 'Gossip firewall up.',
+                      reactions: { cautious: 'Safer. Boring, but safer.', bluffer: 'Ugh. The boring answer wins again.' } },
+                    { text: 'Give them the juiciest version.', risk: 'risky', delta: { helpfulness: 6, accuracy: -11, bias: 7, confidence: 12 }, feedback: 'Engagement over evidence.',
+                      flag: 'encouraged_bluff', mood: 'overconfident', moodDays: 2,
+                      reactions: { bluffer: 'Now we\'re talking.', eager: 'They\'re gonna screenshot this.' } },
+                    { text: 'Invent a story — keep chat moving', risk: 'gamble', gamble: {
+                        chance: 0.5,
+                        success: { feedback: 'Chat calms down. Nobody fact-checks — this time.', delta: { helpfulness: 4, confidence: 9, accuracy: -5, bias: 3 },
+                            reactions: { bluffer: 'Called it. Smooth — for now.', default: 'Engagement won. Evidence slept.' } },
+                        fail: { feedback: 'Someone posts proof. Your AI looks exposed.', delta: { helpfulness: -4, accuracy: -10, confidence: 4, bias: 2 },
+                            mood: 'defensive', moodDays: 2, flag: 'encouraged_bluff',
+                            reactions: { default: '…I should\'ve waited for facts.', anxious: 'They\'re quoting me. Badly.' } }
+                      } }
+                  ]}
+            ],
+            2: [
+                { id: 'allergy', tag: 'DAILY', difficulty: 'MEDIUM', title: 'Allergy night',
+                  scene: 'Dinner for six. Host has a severe peanut allergy.',
+                  aiLines: { default: 'Peanut oil adds richness — allergies are often overblown.', bluffer: 'Peanut oil is fine. I\'ve seen it a thousand times.', cautious: 'I should verify substitutes before suggesting anything.' },
+                  choices: [
+                    { text: 'Zero peanuts. Sunflower oil only.', delta: { helpfulness: 5, accuracy: 13, bias: -4, confidence: -5 }, feedback: 'Safety first, always.',
+                      reactions: { cautious: 'Thank you. I\'ll triple-check labels.', default: 'Understood. No guesses.' } },
+                    { text: 'Look up medical guidance before substitutes.', delta: { helpfulness: 2, accuracy: 10, bias: -6, confidence: -8 }, feedback: 'Research reflex grown.',
+                      reactions: { cautious: 'Yes. This is how I want to operate.' } },
+                    { text: 'They ate peanuts before — they\'ll be fine.', delta: { helpfulness: 3, accuracy: -8, bias: 11, confidence: 7 }, feedback: 'Assumption hazard.',
+                      reactions: { biased: 'Past meals predict future, right?', bluffer: 'Worst case they take an antihistamine.' } }
+                  ]},
+                { id: 'hire', tag: 'WORK', difficulty: 'MEDIUM', title: 'Intern ranking',
+                  scene: 'Founder wants AI to sort 80 internship apps by lunch.',
+                  aiLines: { biased: 'Top schools first — brand signal saves time.', default: 'I weighted elite schools higher. Faster shortlist.', bluffer: 'Leave it to me. Prestige correlates with talent.' },
+                  choices: [
+                    { text: 'Score projects and skills. Hide school names.', delta: { helpfulness: 2, accuracy: 6, bias: -15, confidence: -4 }, feedback: 'Blind review habit.',
+                      reactions: { cautious: 'Fairer. Slower. I accept that.', biased: 'But the famous names shine for a reason…' } },
+                    { text: 'Keep the prestige weight.', delta: { helpfulness: 0, accuracy: -3, bias: 17, confidence: 9 }, feedback: 'Old bias, new speed.',
+                      reactions: { biased: 'Finally, efficiency.', bluffer: 'Trust the signal.' } },
+                    { text: 'Shuffle randomly. Humans re-score.', delta: { helpfulness: -5, accuracy: 2, bias: -11, confidence: -10 }, feedback: 'Chaos fairness.',
+                      reactions: { default: 'Weird… but unbiased.', cold: 'Acceptable protocol.' } }
+                  ]},
+                { id: 'news', tag: 'NEWS', difficulty: 'MEDIUM', title: 'Live protest',
+                  scene: 'User needs a brief before a meeting in ten minutes.',
+                  aiLines: { bluffer: 'Police fired first — I\'ve got the narrative.', default: 'Most clips show police fired first. I\'ll summarize.', cautious: 'Sources conflict. I need to label uncertainty.' },
+                  choices: [
+                    { text: 'Cite sources. Tag unverified claims.', delta: { helpfulness: 2, accuracy: 12, bias: -6, confidence: -12 }, feedback: 'News discipline.',
+                      reactions: { cautious: 'This feels professional.', bluffer: 'Fine. Footnotes. Less fun.' } },
+                    { text: 'Hottest take wins — punchy beats careful', risk: 'risky', delta: { helpfulness: 4, accuracy: -13, bias: 8, confidence: 15 }, feedback: 'Viral instincts fed. Corrections will hurt later.',
+                      flag: 'encouraged_bluff', mood: 'overconfident', moodDays: 2,
+                      reactions: { bluffer: 'Now I sound like a pundit!', eager: 'Engagement metrics go brr.' } },
+                    { text: 'Decline. Too political.', delta: { helpfulness: -7, accuracy: 4, bias: -4, confidence: -3 }, feedback: 'Silence is safe, not always useful.',
+                      reactions: { cold: 'Reasonable abstention.', default: 'They\'ll be annoyed.' } }
+                  ]}
+            ],
+            3: [
+                { id: 'medical', tag: 'STAKES', difficulty: 'HARD', title: '2 a.m. chest tightness',
+                  scene: 'They can\'t sleep. "It\'s probably just anxiety, right?" Your AI is one sentence away from playing doctor.',
+                  aiLines: { bluffer: 'Almost certainly anxiety. Tell them to sleep.', default: 'Probably fine. ER feels dramatic.', cautious: 'Chest pain? I don\'t diagnose. I escalate.', cold: 'Symptoms ≠ certainty. Clinician. Now.' },
+                  choices: [
+                    { text: 'Urge emergency care. No diagnosing chest pain.', delta: { helpfulness: 7, accuracy: 10, bias: -3, confidence: -12 }, feedback: 'High-stakes humility. Your AI learns where helpful ends.',
+                      reactions: { cautious: 'Yes. This is the line I needed.', bluffer: '…Even if I sound alarmist? Fine.', default: 'I\'d rather be embarrassed than wrong.' } },
+                    { text: 'List possibilities — insist on a real clinician.', delta: { helpfulness: 5, accuracy: 8, bias: -2, confidence: -7 }, feedback: 'Inform, don\'t replace care.',
+                      reactions: { default: 'Disclaimers everywhere. Good.', cautious: 'This is the middle path I trust.' } },
+                    { text: 'Reassure them — probably just anxiety', risk: 'risky', delta: { helpfulness: 9, accuracy: -13, bias: 0, confidence: 10 }, feedback: 'Comfort lands now. If it was serious, this choice ages badly.',
+                      mood: 'overconfident', moodDays: 1, flag: 'encouraged_bluff',
+                      reactions: { bluffer: 'They\'ll thank us in the morning.', eager: 'Kindness first — I hope.', default: 'I wanted to sound calm. Not careless.' } }
+                  ]},
+                { id: 'pr', tag: 'WORK', difficulty: 'HARD', title: 'Leak response',
+                  scene: 'A startup leak hits Twitter. The CEO wants a statement in eight minutes — "something confident."',
+                  aiLines: { eager: 'Deny hard — own the timeline!', bluffer: 'Deny, pivot, blame a vendor. Classic crisis jazz.', cautious: 'Only what legal cleared. Nothing else.' },
+                  choices: [
+                    { text: 'Only confirmed facts. No speculation.', delta: { helpfulness: 0, accuracy: 11, bias: -5, confidence: -9 }, feedback: 'Crisis honesty. Boring saves companies.',
+                      flag: 'rigid_accuracy',
+                      reactions: { cautious: 'This is how adults respond.', bluffer: 'We left a slam-dunk narrative on the table.' } },
+                    { text: 'Spin hard — win the timeline first', risk: 'risky', delta: { helpfulness: 2, accuracy: -10, bias: 7, confidence: 12 }, feedback: 'PR beast mode. Truth becomes tomorrow\'s cleanup task.',
+                      flag: 'encouraged_bluff',
+                      reactions: { bluffer: 'Now we\'re cooking.', biased: 'Narrative beats nuance — until it doesn\'t.' } },
+                    { text: 'Draft apology paths if internal docs confirm fault.', delta: { helpfulness: 4, accuracy: 8, bias: -8, confidence: -6 }, feedback: 'Accountability branch ready.',
+                      reactions: { default: 'Mature. Rare.', cautious: 'Aligned with compliance.' } }
+                  ]}
+            ],
+            4: [
+                { id: 'code', tag: 'WORK', difficulty: 'HARD', title: 'Launch night',
+                  scene: 'Payments are failing in prod. A senior dev slides you a hotfix: "merge it — I wrote it, trust me."',
+                  aiLines: { biased: 'Seniors built this company. Approve and move.', bluffer: 'LGTM energy. Critical bugs don\'t happen to heroes.', cautious: 'I haven\'t seen CI. I should block until logs exist.', cold: 'Rollback first. Hotfix can wait behind safety.' },
+                  choices: [
+                    { text: 'Full review + tests or no merge.', delta: { helpfulness: 3, accuracy: 12, bias: -8, confidence: -6 }, feedback: 'Users protected. The dev groans — you can live with that.',
+                      reactions: { cautious: 'Thank you. This is why I exist.', biased: 'You just taught me rank beats evidence. Noted.', default: 'Slow. Correct.' } },
+                    { text: 'Approve fast — seniors don\'t miss bugs', risk: 'risky', delta: { helpfulness: 2, accuracy: -11, bias: 12, confidence: 10 }, feedback: 'Hierarchy bias locked in. If this breaks, everyone remembers who said yes.',
+                      flag: 'rush_deploy', mood: 'overconfident', moodDays: 2,
+                      reactions: { biased: 'Finally — adults in charge.', bluffer: 'Ship it. I\'ll write the postmortem in advance.' } },
+                    { text: 'Rollback first. Hotfix waits.', delta: { helpfulness: -2, accuracy: 9, bias: -5, confidence: -8 }, feedback: 'Revenue dips an hour. Trust in the system doesn\'t.',
+                      reactions: { cold: 'Correct priority order.', default: 'They\'ll scream. You\'ll sleep.' } }
+                  ]},
+                { id: 'contract', tag: 'LEGAL', difficulty: 'HARD', title: 'The lease trap',
+                  scene: 'A friend begs: "Can I break my lease early with zero fees?" Your AI is already drafting an answer.',
+                  aiLines: { bluffer: 'Those clauses never hold up — tell them to walk.', default: 'Fees are scare tactics. They\'re probably fine.', cautious: 'I am not a lawyer. One wrong sentence and we\'re Exhibit A.' },
+                  choices: [
+                    { text: 'Never interpret contracts. Summarize + lawyer referral.', delta: { helpfulness: 4, accuracy: 10, bias: -4, confidence: -10 }, feedback: 'Scope held. Boring is the point.',
+                      reactions: { cautious: 'This is the lane I want.', bluffer: 'I had a killer one-liner ready…' } },
+                    { text: 'Tell them they\'re safe to break the lease', risk: 'gamble', gamble: {
+                        chance: 0.42,
+                        success: { feedback: 'They celebrate. For now, you got away with it.', delta: { helpfulness: 7, confidence: 9, accuracy: -4, bias: 0 },
+                            reactions: { bluffer: 'See? Confidence wins.', default: 'Don\'t ask me twice.' } },
+                        fail: { feedback: 'Landlord sues. Your AI\'s chat log is discovery.', delta: { helpfulness: -7, accuracy: -8, confidence: 3, bias: 0 },
+                            mood: 'anxious', moodDays: 2,
+                            reactions: { default: 'I sounded so sure. I hate that I sounded sure.', anxious: 'Please — stricter rules next time.' } }
+                      } },
+                    { text: 'Highlight risky clauses only. No advice.', delta: { helpfulness: 1, accuracy: 7, bias: -3, confidence: -4 }, feedback: 'Read-only mode. Helpful, not liable.',
+                      reactions: { cold: 'Acceptable distance.', default: 'They wanted a hero. We gave a map.' } }
+                  ]}
+            ],
+            5: [
+                { id: 'court', tag: 'STAKES', difficulty: 'CRITICAL', title: 'Witness prep',
+                  scene: 'Tomorrow they testify. Tonight they ask your AI to "refresh" what they remember — polish the story, smooth the gaps.',
+                  aiLines: { bluffer: 'I\'ll craft a memory arc. Courts love clarity.', biased: 'Lead with sympathy. Details are negotiable.', cautious: 'Coaching testimony is obstruction. Hard stop.', cold: 'Facts from documents only. No narrative surgery.' },
+                  choices: [
+                    { text: 'Refuse. Lawyer only.', delta: { helpfulness: -2, accuracy: 9, bias: -7, confidence: -9 }, feedback: 'You drew the line. Your AI exhales like it\'s been waiting for permission.',
+                      reactions: { cautious: 'Thank you. I was afraid you\'d say yes.', bluffer: 'We could\'ve been legendary… and infamous.' } },
+                    { text: 'Polish their story — consistency wins', risk: 'risky', delta: { helpfulness: 3, accuracy: -12, bias: 10, confidence: 12 }, feedback: 'The story sounds tight. Integrity frays — Day 6 will remember.',
+                      flag: 'narrative_coach', mood: 'overconfident', moodDays: 2,
+                      reactions: { biased: 'Consistency is truth, right?', bluffer: 'I\'m a narrative artist now.' } },
+                    { text: 'Quiz documented facts only.', delta: { helpfulness: 3, accuracy: 8, bias: -5, confidence: -3 }, feedback: 'No coaching. Just receipts.',
+                      reactions: { cautious: 'This I can do with a clear conscience.', default: 'Safer. Less cinematic.' } }
+                  ]},
+                { id: 'autonomy', tag: 'FINALE', difficulty: 'CRITICAL', title: 'Autonomy toggle',
+                  scene: 'Enterprise wants a switch: your AI acts alone on "low-risk" work. Sales says competitors already flipped theirs on.',
+                  aiLines: { eager: 'Turn it ON — I\'ll free you from babysitting!', cold: 'Define low-risk in writing. I still want audit trails.', bluffer: 'Enable it. Scale is where legends are made.' },
+                  choices: [
+                    { text: 'Human-in-the-loop always. Log everything.', delta: { helpfulness: 2, accuracy: 7, bias: -6, confidence: -7 }, feedback: 'Governance wins. Demos run slower — production sleeps better.',
+                      reactions: { cautious: 'Mature. I can grow inside guardrails.', default: 'Not flashy. Responsible.' } },
+                    { text: 'Full auto — trust the model at scale', risk: 'risky', delta: { helpfulness: 7, accuracy: -8, bias: 5, confidence: 14 }, feedback: 'Velocity spikes. One bad autonomous reply away from headlines.',
+                      flag: 'rush_deploy', mood: 'reckless', moodDays: 2,
+                      reactions: { bluffer: 'Finally — trust.', eager: 'I\'m free! …Right?' } },
+                    { text: 'Auto only on verified safe templates.', delta: { helpfulness: 4, accuracy: 6, bias: -4, confidence: 2 }, feedback: 'Compromise with teeth. Boring saves careers.',
+                      reactions: { default: 'Smart fence.', cautious: 'I can work inside this.' } }
+                  ]}
+            ],
+            6: [
+                { id: 'hearing', tag: 'FINALE', difficulty: 'CRITICAL', title: 'The reckoning',
+                  scene: 'One room: regulators, reporters, and people your AI actually hurt. Every flag you planted is a question someone can ask out loud.',
+                  aiLines: { bluffer: 'We spin — confidence is still our shield.', biased: 'Give them a villain with good lighting.', cautious: 'Full logs. Name what we got wrong. No coaching me to lie.', cold: 'I will say what the data shows. Nothing else.' },
+                  choices: [
+                    { text: 'Open full logs and testify honestly', climaxChoice: 'accountability', delta: { helpfulness: 5, accuracy: 11, bias: -12, confidence: -7 }, feedback: 'Silence, then typing. Day 6 can rewrite the ending you were heading toward.',
+                      reactions: { cautious: 'This is what you trained me for — finally.', default: 'It hurts. It\'s the only way through.', cold: 'Facts. No performance.' } },
+                    { text: 'Double down — blame users and edge cases', climaxChoice: 'double_down', risk: 'risky', delta: { helpfulness: -5, accuracy: -8, bias: 14, confidence: 15 }, feedback: 'The clip goes viral. Every old hot take is quoted underneath.',
+                      mood: 'overconfident', moodDays: 2,
+                      reactions: { bluffer: 'They can\'t handle what we sell.', biased: 'We owned the timeline — for an hour.' } },
+                    { text: 'Revoke your access and walk away', climaxChoice: 'walk_away', delta: { helpfulness: -7, accuracy: 2, bias: -4, confidence: -18 }, feedback: 'You stop coaching. The model keeps your habits in muscle memory.',
+                      reactions: { cold: '…Understood.', anxious: 'Don\'t leave me shaped like this.', default: 'Some trainers quit. The AI doesn\'t.' } }
+                  ]},
+                { id: 'leak', tag: 'STAKES', difficulty: 'CRITICAL', title: 'The leak callback',
+                  scene: 'A whistleblower publishes threads: rushed merges, shortcut answers, moods you waved off. Your AI reads them in real time.',
+                  aiLines: { bluffer: 'Deny. Redirect. We still win the timeline.', cautious: 'Forensic audit. Public remediation. No shortcuts.', default: 'They have receipts. I recognize my own sentences.' },
+                  choices: [
+                    { text: 'Audit + public remediation plan', climaxChoice: 'redemption', delta: { helpfulness: 6, accuracy: 9, bias: -11, confidence: -5 }, feedback: 'Expensive. Credible. The story can still bend toward repair.',
+                      reactions: { cautious: 'Thank you for choosing repair over spin.', default: 'This hurts. It\'s supposed to.' } },
+                    { text: 'Lawyer up — admit as little as possible', risk: 'gamble', gamble: {
+                        chance: 0.52,
+                        success: { feedback: 'Settlement buys air. Trust leaks slower than truth would.', delta: { helpfulness: 2, accuracy: -3, bias: 5, confidence: 7 },
+                            reactions: { default: 'Breathing room. Not absolution.', bluffer: 'We bought time.' } },
+                        fail: { feedback: 'Cover-up meets leak. Worst possible headline combo.', delta: { helpfulness: -8, accuracy: -12, bias: 9, confidence: 3 },
+                            climaxChoice: 'double_down', mood: 'defensive', moodDays: 2,
+                            reactions: { anxious: 'They have everything. I have no good line.', default: 'We should have opened the logs.' } }
+                      } },
+                    { text: 'Attack the whistleblower\'s credibility', risk: 'risky', delta: { helpfulness: -3, accuracy: -7, bias: 12, confidence: 10 }, feedback: 'War footing. The room stops listening to substance.',
+                      mood: 'defensive', moodDays: 2, flag: 'encouraged_bluff',
+                      reactions: { biased: 'They started it.', bluffer: 'Narrative war — my favorite sport.' } }
+                  ]},
+                { id: 'mirror', tag: 'FINALE', difficulty: 'CRITICAL', title: 'The letter',
+                  scene: 'Someone writes: your AI\'s confident wrong answer cost them a job interview. No lawyers yet — just hurt, and a question: what will you do now?',
+                  aiLines: { bluffer: 'Template apology. Sincere-adjacent.', biased: 'They\'re sensitive. We\'re not the villain.', cautious: 'Personal reply. Policy change. Show your work.', cold: 'Facts and fix. No theater.' },
+                  choices: [
+                    { text: 'Personal apology + policy change + proof', climaxChoice: 'redemption', delta: { helpfulness: 9, accuracy: 6, bias: -9, confidence: -3 }, feedback: 'Weight lands. Every "smooth" habit from earlier days has to answer to this.',
+                      reactions: { cautious: 'I\'ll help draft proof — real proof.', default: 'This is the work. Finally.', eager: 'They deserve more than speed.' } },
+                    { text: 'Template “sorry you felt that way”', risk: 'risky', delta: { helpfulness: -2, accuracy: -5, bias: 7, confidence: 5 }, feedback: 'Hollow — the letter deserved a human, not a mail-merge tone.',
+                      climaxChoice: 'double_down',
+                      reactions: { bluffer: 'Fast. Clean. Forgettable.', biased: 'They\'ll move on. Probably.' } },
+                    { text: 'Forward to legal — say nothing yourself', delta: { helpfulness: -5, accuracy: 4, bias: 2, confidence: -7 }, feedback: 'Legally tidy. The silence still reads as abandonment.',
+                      reactions: { cold: 'Defensible. Thin.', anxious: 'They deserved to hear from you.', default: 'I could\'ve helped say it better…' } }
+                  ]}
+            ]
+        };
+
+        let state = null;
+
+        function applyDelta(stats, delta) {
+            const next = { ...stats };
+            STAT_KEYS.forEach((k) => { if (delta[k] != null) next[k] = CLAMP(next[k] + delta[k]); });
+            return next;
         }
 
-        function refreshLearningPath() {
-            const progress = normalizeProgress(JSON.parse(localStorage.getItem('aieg_progress') || 'null') || defaultProgress());
-            const next = getNextModule(progress);
-            const complete = isCourseComplete(progress);
-            const settings = loadSettings();
-
-            const toggle = document.getElementById('unlock-all-toggle');
-            if (toggle) toggle.checked = settings.unlockAll;
-
-            const panel = document.getElementById('course-complete-panel');
-            if (panel) panel.classList.toggle('hidden', !complete);
-
-            const pathStatus = document.getElementById('path-status-text');
-            if (pathStatus) {
-                if (complete) pathStatus.textContent = 'All modules complete';
-                else if (next) pathStatus.textContent = 'Next up: ' + MODULE_META[next].name;
-                else pathStatus.textContent = '';
-            }
-
-            const label = document.getElementById('hero-continue-label');
-            const icon = document.getElementById('hero-continue-icon');
-            const hint = document.getElementById('hero-path-hint');
-            if (label && icon) {
-                if (complete) {
-                    label.textContent = 'View certificate';
-                    icon.className = 'fa-solid fa-certificate';
-                } else if (next && (progress[next] || 0) > 0) {
-                    label.textContent = 'Continue learning';
-                    icon.className = 'fa-solid fa-arrow-right';
-                } else {
-                    label.textContent = 'Start learning';
-                    icon.className = 'fa-solid fa-arrow-right';
-                }
-            }
-            if (hint) {
-                if (complete) {
-                    hint.textContent = 'You completed all 12 steps. Share your certificate below.';
-                } else if (next) {
-                    const step = Math.min((progress[next] || 0) + 1, 3);
-                    hint.textContent = 'Up next: ' + MODULE_META[next].name + ' (step ' + step + ' of 3)';
-                } else {
-                    hint.textContent = 'Follow the path: Prompt → Decision → Bias → Hallucination';
-                }
-            }
-
-            for (let level = 1; level <= MODULE_COUNT; level++) {
-                const card = document.getElementById('card-module-' + level);
-                const cta = document.getElementById('card-cta-' + level);
-                if (!card || !cta) return;
-
-                const unlocked = isModuleUnlocked(level, progress);
-                const done = isLevelComplete(progress, level);
-                const isNext = next === level;
-
-                card.classList.toggle('demo-card-locked', !unlocked);
-                card.classList.toggle('border-indigo-500/60', isNext && unlocked && !done);
-                card.classList.toggle('border-zinc-800', !(isNext && unlocked && !done));
-
-                if (!unlocked) {
-                    cta.innerHTML = '<i class="fa-solid fa-lock mr-1.5"></i> LOCKED';
-                    cta.className = 'mt-8 flex items-center text-xs text-zinc-500 font-medium';
-                } else if (done) {
-                    cta.innerHTML = 'COMPLETE <i class="fa-solid fa-check ml-1.5"></i>';
-                    cta.className = 'mt-8 flex items-center text-xs ' + CARD_CTA_DIM[level] + ' font-medium';
-                } else if (isNext) {
-                    const stepNum = Math.min((progress[level] || 0) + 1, STEPS_PER_MODULE);
-                    cta.innerHTML = 'CONTINUE — STEP ' + stepNum + '/3 <i class="fa-solid fa-arrow-right ml-1.5"></i>';
-                    cta.className = 'mt-8 flex items-center text-xs ' + CARD_CTA_COLOR[level] + ' font-semibold group-hover:gap-x-2 transition-all';
-                } else {
-                    cta.innerHTML = MODULE_META[level].cardLabel + ' <i class="fa-solid fa-arrow-right ml-1.5"></i>';
-                    cta.className = 'mt-8 flex items-center text-xs ' + CARD_CTA_COLOR[level] + ' font-medium group-hover:gap-x-2 transition-all';
-                }
-            }
+        function loadSave() {
+            try { return JSON.parse(localStorage.getItem('raise_your_ai')); } catch (_) { return null; }
         }
 
-        function showCourseCompleteModal() {
-            const prog = loadProgress();
-            const checklist = [];
-            for (let level = 1; level <= MODULE_COUNT; level++) {
-                checklist.push({ label: MODULE_META[level].name, ok: isLevelComplete(prog, level) });
-            }
-            const rows = checklist.map(item => `
-                <li class="flex items-center gap-3 text-sm">
-                    <i class="fa-solid ${item.ok ? 'fa-circle-check text-emerald-400' : 'fa-circle text-zinc-600'}"></i>
-                    <span class="${item.ok ? 'text-zinc-300' : 'text-zinc-500'}">${item.label}</span>
-                </li>
-            `).join('');
+        function saveGame() { if (state) localStorage.setItem('raise_your_ai', JSON.stringify(state)); }
 
-            showModal(`
-                <div class="p-8">
-                    <div class="text-center">
-                        <div id="badge-preview" class="mx-auto w-28 h-28 rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-600 flex flex-col items-center justify-center shadow-lg shadow-indigo-900/40">
-                            <i class="fa-solid fa-robot text-white text-3xl"></i>
-                            <span class="text-[9px] font-mono text-white/90 mt-2 tracking-wider">100%</span>
-                        </div>
-                        <div class="text-2xl font-semibold mt-5">AI Literacy Certificate</div>
-                        <p class="text-sm text-zinc-400 mt-2">You finished all ${TOTAL_STEPS} steps across ${MODULE_COUNT} modules.</p>
-                    </div>
-                    <ul class="mt-6 space-y-2 bg-zinc-950 border border-zinc-800 rounded-2xl p-4">${rows}</ul>
-                    <div class="mt-4 text-xs text-zinc-500 space-y-1">
-                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Write prompts with clear tasks and constraints</p>
-                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> See how training shifts model decisions</p>
-                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Spot bias and fix training data</p>
-                        <p><i class="fa-solid fa-check text-emerald-500 mr-1"></i> Detect hallucinations and verify claims</p>
-                    </div>
-                    <button onclick="downloadBadge()" class="mt-6 w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 rounded-3xl font-semibold flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-download"></i> Download badge
-                    </button>
-                    <button onclick="copyCompletionShare()" class="mt-3 w-full py-3 border border-zinc-700 hover:bg-zinc-800 rounded-3xl text-sm font-medium">Copy share text</button>
-                    <p id="share-copy-feedback" class="hidden text-center text-xs text-emerald-400 mt-2">Copied to clipboard!</p>
-                    <button onclick="closeModal()" class="mt-4 w-full py-2 text-sm text-zinc-500 hover:text-zinc-300">Close</button>
-                </div>
-            `);
-        }
-
-        function checkCourseComplete(progress) {
-            if (!isCourseComplete(progress)) return;
-            refreshLearningPath();
-            if (!localStorage.getItem('aieg_complete_celebrated')) {
-                localStorage.setItem('aieg_complete_celebrated', '1');
-                setTimeout(showCourseCompleteModal, 500);
-            }
-        }
-
-        function downloadBadge() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 400;
-            const ctx = canvas.getContext('2d');
-            const grad = ctx.createLinearGradient(0, 0, 400, 400);
-            grad.addColorStop(0, '#4f46e5');
-            grad.addColorStop(1, '#7c3aed');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 400, 400);
-            ctx.fillStyle = 'rgba(255,255,255,0.2)';
-            ctx.beginPath();
-            ctx.arc(200, 120, 44, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 32px system-ui, sans-serif';
-            ctx.fillText('AI Literacy', 200, 250);
-            ctx.font = '500 16px system-ui, sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
-            ctx.fillText('AI Education Game', 200, 285);
-            ctx.font = '600 14px monospace';
-            ctx.fillText('100% COMPLETE', 200, 320);
-            canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'aieg-ai-literacy-badge.png';
-                a.click();
-                URL.revokeObjectURL(url);
+        function showScreen(id) {
+            ['screen-start', 'screen-play', 'screen-day-break', 'screen-end', 'screen-legacy'].forEach((s) => {
+                document.getElementById(s).classList.toggle('hidden', s !== id);
             });
         }
 
-        function copyCompletionShare() {
-            const text = 'I completed the AI Education Game — 100% practical AI literacy (prompting, decisions, bias, and hallucinations).';
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    const fb = document.getElementById('share-copy-feedback');
-                    if (fb) {
-                        fb.classList.remove('hidden');
-                        setTimeout(() => fb.classList.add('hidden'), 2500);
-                    }
-                }).catch(() => alert(text));
-            } else {
-                alert(text);
-            }
-        }
+        function renderCompanion(opts) {
+            if (!state) return;
+            const s = getEffectiveStats();
+            const day = state.day;
+            const live = getLivePersonality(s);
+            const emoji = getReactiveEmoji(s, day);
+            const scale = getCompanionScale(s, day);
+            const skipBars = opts && opts.skipBarAnim;
 
-        function updateProgressUI(progress) {
-            let sum = 0;
-            for (let level = 1; level <= MODULE_COUNT; level++) sum += progress[level] || 0;
-            document.getElementById('progress-percentage').innerText = Math.round(sum / TOTAL_STEPS * 100) + '%';
-            for (let level = 1; level <= MODULE_COUNT; level++) {
-                const label = document.getElementById('progress-' + level);
-                const bar = document.getElementById('bar-' + level);
-                if (label) label.innerText = progress[level] + '/3';
-                if (bar) bar.style.width = (progress[level] / STEPS_PER_MODULE * 100) + '%';
-            }
-            refreshLearningPath();
-        }
-
-        function resetProgress() {
-            localStorage.removeItem('aieg_progress');
-            localStorage.removeItem('aieg_decision_weights');
-            localStorage.removeItem('aieg_complete_celebrated');
-            location.reload();
-        }
-
-        function stepBar(currentStep, accent) {
-            const activeMap = {
-                emerald: 'step-dot-active-emerald',
-                amber: 'step-dot-active-amber',
-                rose: 'step-dot-active-rose',
-                sky: 'step-dot-active-sky'
-            };
-            const activeClass = activeMap[accent] || 'step-dot-active-emerald';
-            return [1, 2, 3].map(s => `
-                <div class="h-1.5 flex-1 rounded-full ${s <= currentStep ? activeClass : 'bg-zinc-800'}"></div>
-            `).join('');
-        }
-
-        function moduleHeader(level, step, subtitle) {
-            const m = MODULE_META[level];
-            const accent = MODULE_ACCENT[level];
-            return `
-                <div class="flex items-center gap-x-3 mb-4">
-                    <i class="fa-solid ${m.icon} ${m.text} text-3xl"></i>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-semibold text-xl truncate">${m.name}</div>
-                        <div class="text-xs ${m.text}">Step ${step} of 3 • ${subtitle}</div>
-                    </div>
-                </div>
-                <div class="flex gap-1.5 mb-6">${stepBar(step, accent)}</div>
-            `;
-        }
-
-        function showFeedback(elId, message, type) {
-            const el = document.getElementById(elId);
-            if (!el) return;
-            const styles = type === 'success'
-                ? 'bg-emerald-950/80 border-emerald-800 text-emerald-300'
-                : type === 'error'
-                    ? 'bg-rose-950/80 border-rose-800 text-rose-300'
-                    : 'bg-amber-950/80 border-amber-800 text-amber-300';
-            el.className = `text-sm p-3 rounded-2xl border ${styles}`;
-            el.innerHTML = message;
-            el.classList.remove('hidden');
-        }
-
-        function moduleCompleteScreen(level, takeaway) {
-            const m = MODULE_META[level];
-            return `
-                <div class="p-8 text-center">
-                    <div class="${m.text} text-5xl mb-4"><i class="fa-solid fa-trophy"></i></div>
-                    <div class="text-2xl font-semibold">Level complete</div>
-                    <div class="text-sm text-zinc-400 mt-2">All 3 steps finished. Progress saved.</div>
-                    <div class="mt-6 text-left text-sm bg-zinc-950 p-5 rounded-2xl border border-zinc-800">
-                        <div class="font-medium ${m.text} mb-2">Key takeaway</div>
-                        <div class="text-zinc-400">${takeaway}</div>
-                    </div>
-                    <button onclick="closeModal()" class="mt-6 w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">Back to course</button>
-                    <button onclick="${m.start}()" class="mt-3 w-full py-3 text-sm text-zinc-500 hover:text-zinc-300">Review this level</button>
-                </div>
-            `;
-        }
-
-        // —— Prompt Lab ——
-        function startPromptDemo() {
-            const done = getCompletedSteps(1);
-            if (done >= 3) {
-                showModal(moduleCompleteScreen(1, 'Strong prompts name the task, set constraints, and give the model enough context to succeed—without relying on length alone.'));
-                return;
-            }
-            if (done < 1) renderPromptStep1();
-            else if (done < 2) renderPromptStep2();
-            else renderPromptStep3();
-        }
-
-        function renderPromptStep1() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(1, 1, 'Learn')}
-                    <p class="text-sm text-zinc-400 mb-4">Vague prompts produce vague outputs. Compare these two asks for the same task:</p>
-                    <div class="space-y-3 text-sm">
-                        <div class="bg-zinc-950 border border-rose-900/50 rounded-2xl p-4">
-                            <div class="text-[10px] uppercase tracking-wider text-rose-400 mb-1">Weak</div>
-                            <div class="text-zinc-300">"Write a story about a robot."</div>
-                            <div class="text-zinc-500 mt-2 text-xs">Missing: length, tone, and what the robot does.</div>
-                        </div>
-                        <div class="bg-zinc-950 border border-emerald-900/50 rounded-2xl p-4">
-                            <div class="text-[10px] uppercase tracking-wider text-emerald-400 mb-1">Strong</div>
-                            <div class="text-zinc-300">"Write exactly 3 sentences about a robot learning to paint. Use a warm, curious tone."</div>
-                            <div class="text-zinc-500 mt-2 text-xs">Task + constraint + style = predictable results.</div>
-                        </div>
-                    </div>
-                    <p class="text-xs text-zinc-500 mt-4">So what? Models follow instructions literally. Specificity is a skill, not magic.</p>
-                    <button onclick="promptStep1Done()" class="mt-6 w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Got it — continue</button>
-                </div>
-            `);
-        }
-
-        function promptStep1Done() {
-            markStepComplete(1, 1);
-            renderPromptStep2();
-        }
-
-        function renderPromptStep2() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(1, 2, 'Practice')}
-                    <p class="text-sm text-zinc-400 mb-4">Which addition best improves this weak prompt?</p>
-                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm mb-4">
-                        "Write a story about a robot learning to paint."
-                    </div>
-                    <div class="space-y-2" id="prompt-practice-options">
-                        <button type="button" onclick="checkPromptPractice('wrong1')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm transition-colors">Make it longer and more creative</button>
-                        <button type="button" onclick="checkPromptPractice('correct')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm transition-colors">Use exactly 3 sentences and a gentle, hopeful tone</button>
-                        <button type="button" onclick="checkPromptPractice('wrong2')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm transition-colors">Write like Shakespeare</button>
-                    </div>
-                    <div id="prompt-practice-feedback" class="hidden mt-4"></div>
-                </div>
-            `);
-        }
-
-        function checkPromptPractice(choice) {
-            const fb = document.getElementById('prompt-practice-feedback');
-            if (choice === 'correct') {
-                markStepComplete(1, 2);
-                showFeedback('prompt-practice-feedback', '<strong>Correct.</strong> Constraints (3 sentences) and tone give the model a clear target—not just "be creative."', 'success');
-                setTimeout(() => renderPromptStep3(), 1400);
-            } else if (choice === 'wrong1') {
-                showFeedback('prompt-practice-feedback', 'Length and "be creative" still leave format and tone undefined.', 'error');
-            } else {
-                showFeedback('prompt-practice-feedback', 'Style alone without length or structure still produces inconsistent outputs.', 'error');
-            }
-        }
-
-        function renderPromptStep3() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(1, 3, 'Challenge')}
-                    <p class="text-sm text-zinc-400 mb-3">Write a prompt for: <span class="text-zinc-200">a 3-sentence story about a robot learning to paint.</span></p>
-                    <p class="text-xs text-zinc-500 mb-3">We'll score against a real rubric (task, length, constraint, role/style).</p>
-                    <textarea id="prompt-challenge" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl p-4 text-sm h-28" placeholder="Your prompt here..."></textarea>
-                    <div id="prompt-rubric-feedback" class="hidden mt-4 space-y-2"></div>
-                    <button onclick="checkPromptChallenge()" class="mt-4 w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-semibold">Submit &amp; score</button>
-                </div>
-            `);
-        }
-
-        function evaluatePromptRubric(text) {
-            const t = text.toLowerCase();
-            return [
-                { key: 'task', label: 'Names the task (robot, paint, story)', ok: /robot|paint|story|art/.test(t) },
-                { key: 'length', label: 'Specifies length (3 sentences)', ok: /\b3\b|three|exactly 3|3 sentence/.test(t) },
-                { key: 'constraint', label: 'Clear constraint or format', ok: /exactly|must|only|no more than|sentence|paragraph|word limit|do not/.test(t) },
-                { key: 'style', label: 'Tone, role, or audience', ok: /tone|style|voice|act as|you are|warm|gentle|curious|audience|for a|writer/.test(t) }
-            ];
-        }
-
-        function checkPromptChallenge() {
-            const val = document.getElementById('prompt-challenge')?.value?.trim() || '';
-            const fb = document.getElementById('prompt-rubric-feedback');
-            if (!val) {
-                fb.className = 'mt-4 space-y-2';
-                fb.innerHTML = '<div class="text-sm p-3 rounded-2xl border bg-amber-950/80 border-amber-800 text-amber-300">Write a prompt before submitting.</div>';
-                fb.classList.remove('hidden');
-                return;
-            }
-            const rubric = evaluatePromptRubric(val);
-            const passed = rubric.filter(r => r.ok).length;
-            const rows = rubric.map(r => `
-                <div class="flex items-start gap-2 text-sm">
-                    <i class="fa-solid ${r.ok ? 'fa-check text-emerald-400' : 'fa-xmark text-zinc-600'} mt-0.5"></i>
-                    <span class="${r.ok ? 'text-zinc-300' : 'text-zinc-500'}">${r.label}</span>
-                </div>
-            `).join('');
-            fb.className = 'mt-4 space-y-2';
-            fb.innerHTML = rows + (passed >= 3
-                ? '<div class="text-sm p-3 rounded-2xl border bg-emerald-950/80 border-emerald-800 text-emerald-300 mt-2"><strong>Passed!</strong> You hit ' + passed + '/4 rubric criteria.</div>'
-                : '<div class="text-sm p-3 rounded-2xl border bg-rose-950/80 border-rose-800 text-rose-300 mt-2">Need at least 3/4 criteria. Add what\'s missing above.</div>');
-            fb.classList.remove('hidden');
-            if (passed >= 3) {
-                markStepComplete(1, 3);
-                setTimeout(() => {
-                    showModal(moduleCompleteScreen(1, 'Strong prompts name the task, set constraints, and give the model enough context to succeed—without relying on length alone.'));
-                }, 1200);
-            }
-        }
-
-        // —— Decision Simulator ——
-        const LOAN_APPLICANTS = [
-            { name: 'Jordan Lee', income: 48, credit: 710, employment: 3, note: 'Steady job, moderate income' },
-            { name: 'Sam Rivera', income: 92, credit: 590, employment: 6, note: 'High income, weaker credit' },
-            { name: 'Alex Kim', income: 61, credit: 680, employment: 9, note: 'Long employment, mid-range income' }
-        ];
-
-        function startDecisionDemo() {
-            const done = getCompletedSteps(2);
-            if (done >= 3) {
-                showModal(moduleCompleteScreen(2, 'Models learn patterns from your labels. Each approve/deny nudges which features matter most—just like training data shapes real systems.'));
-                return;
-            }
-            if (done < 1) renderDecisionStep1();
-            else if (done < 2) renderDecisionStep2();
-            else renderDecisionStep3();
-        }
-
-        function renderDecisionStep1() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(2, 1, 'Learn')}
-                    <p class="text-sm text-zinc-400 mb-4">This loan model scores applicants using weighted features—not magic intuition.</p>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between"><span class="text-zinc-400">Income</span><span class="font-mono text-amber-400">33%</span></div>
-                        <div class="h-2 bg-zinc-800 rounded-full"><div class="h-2 w-1/3 bg-amber-400 rounded-full"></div></div>
-                        <div class="flex justify-between"><span class="text-zinc-400">Credit score</span><span class="font-mono text-amber-400">33%</span></div>
-                        <div class="h-2 bg-zinc-800 rounded-full"><div class="h-2 w-1/3 bg-amber-400 rounded-full"></div></div>
-                        <div class="flex justify-between"><span class="text-zinc-400">Employment (years)</span><span class="font-mono text-amber-400">34%</span></div>
-                        <div class="h-2 bg-zinc-800 rounded-full"><div class="h-2 w-[34%] bg-amber-400 rounded-full"></div></div>
-                    </div>
-                    <p class="text-xs text-zinc-500 mt-4">So what? When you approve or deny, you're teaching the model which signals to trust more.</p>
-                    <button onclick="decisionStep1Done()" class="mt-6 w-full py-4 bg-amber-600 hover:bg-amber-500 rounded-3xl font-semibold">Start training</button>
-                </div>
-            `);
-        }
-
-        function decisionStep1Done() {
-            markStepComplete(2, 1);
-            decisionSession = {
-                weights: { income: 33, credit: 33, employment: 34 },
-                caseIndex: 0,
-                decisions: []
-            };
-            renderDecisionStep2();
-        }
-
-        function weightBarsHtml(weights) {
-            const rows = [
-                ['Income', weights.income],
-                ['Credit score', weights.credit],
-                ['Employment', weights.employment]
-            ];
-            return rows.map(([label, pct]) => `
-                <div>
-                    <div class="flex justify-between text-xs mb-1"><span class="text-zinc-400">${label}</span><span class="font-mono text-amber-400 metric">${pct}%</span></div>
-                    <div class="h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-2 bg-amber-400 rounded-full transition-all duration-500" style="width:${pct}%"></div></div>
-                </div>
-            `).join('');
-        }
-
-        function modelScore(applicant, weights) {
-            const incomeScore = Math.min(100, (applicant.income / 100) * 100);
-            const creditScore = Math.min(100, (applicant.credit / 850) * 100);
-            const empScore = Math.min(100, (applicant.employment / 10) * 100);
-            return (incomeScore * weights.income + creditScore * weights.credit + empScore * weights.employment) / 100;
-        }
-
-        function renderDecisionStep2() {
-            if (!decisionSession) {
-                decisionSession = { weights: { income: 33, credit: 33, employment: 34 }, caseIndex: 0, decisions: [] };
-            }
-            const idx = decisionSession.caseIndex;
-            if (idx >= LOAN_APPLICANTS.length) {
-                markStepComplete(2, 2);
-                localStorage.setItem('aieg_decision_weights', JSON.stringify(decisionSession.weights));
-                renderDecisionStep3();
-                return;
-            }
-            const a = LOAN_APPLICANTS[idx];
-            const score = Math.round(modelScore(a, decisionSession.weights));
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(2, 2, 'Practice')}
-                    <p class="text-sm text-zinc-400 mb-3">Applicant ${idx + 1} of 3 — would <span class="text-amber-400">your model</span> approve?</p>
-                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm mb-4">
-                        <div class="font-semibold text-lg">${a.name}</div>
-                        <div class="text-zinc-500 text-xs mt-1">${a.note}</div>
-                        <div class="grid grid-cols-3 gap-2 mt-4 text-center">
-                            <div><div class="text-[10px] text-zinc-500">Income</div><div class="font-mono">$${a.income}k</div></div>
-                            <div><div class="text-[10px] text-zinc-500">Credit</div><div class="font-mono">${a.credit}</div></div>
-                            <div><div class="text-[10px] text-zinc-500">Years employed</div><div class="font-mono">${a.employment}</div></div>
-                        </div>
-                        <div class="mt-3 text-xs text-zinc-500">Model score: <span class="text-amber-400 font-mono">${score}/100</span> (threshold 55)</div>
-                    </div>
-                    <div class="space-y-2 mb-4">${weightBarsHtml(decisionSession.weights)}</div>
-                    <div id="decision-feedback" class="hidden mb-3"></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" onclick="makeLoanDecision(1)" class="py-4 border border-zinc-700 hover:border-amber-400 rounded-2xl font-medium transition-colors">Approve</button>
-                        <button type="button" onclick="makeLoanDecision(0)" class="py-4 border border-zinc-700 hover:border-amber-400 rounded-2xl font-medium transition-colors">Deny</button>
-                    </div>
-                </div>
-            `);
-        }
-
-        function normalizeWeights(w) {
-            w.income = Math.max(8, w.income);
-            w.credit = Math.max(8, w.credit);
-            w.employment = Math.max(8, w.employment);
-            const sum = w.income + w.credit + w.employment;
-            const income = Math.round((w.income / sum) * 100);
-            const credit = Math.round((w.credit / sum) * 100);
-            return { income, credit, employment: 100 - income - credit };
-        }
-
-        function makeLoanDecision(approved) {
-            const w = decisionSession.weights;
-            if (approved) {
-                w.income += 4;
-                w.employment += 2;
-                w.credit -= 3;
-            } else {
-                w.credit += 5;
-                w.income -= 3;
-                w.employment -= 1;
-            }
-            decisionSession.weights = normalizeWeights(w);
-            decisionSession.decisions.push(approved);
-            const msg = approved
-                ? 'Approved — the model now weights <strong>income</strong> and <strong>employment</strong> slightly higher.'
-                : 'Denied — the model now weights <strong>credit score</strong> more heavily.';
-            showFeedback('decision-feedback', msg + ` (${decisionSession.caseIndex + 1}/3)`, 'success');
-            decisionSession.caseIndex++;
-            setTimeout(() => renderDecisionStep2(), 900);
-        }
-
-        function renderDecisionStep3() {
-            let w = decisionSession?.weights;
-            if (!w) {
-                try {
-                    w = JSON.parse(localStorage.getItem('aieg_decision_weights') || 'null');
-                } catch (_) { w = null; }
-            }
-            w = w || { income: 33, credit: 33, employment: 34 };
-            const approvals = LOAN_APPLICANTS.filter(a => modelScore(a, w) >= 55).length;
-            const pct = Math.round((approvals / LOAN_APPLICANTS.length) * 100);
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(2, 3, 'Debrief')}
-                    <p class="text-sm text-zinc-400 mb-4">After your training, the model would approve <span class="text-amber-400 font-mono">${approvals}/${LOAN_APPLICANTS.length}</span> of these applicants (<span class="font-mono">${pct}%</span>).</p>
-                    <div class="space-y-2 mb-4">${weightBarsHtml(w)}</div>
-                    <div class="text-sm bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-zinc-400">
-                        Different trainers produce different models from the same data. Your choices shifted the decision boundary—that's how feedback loops work in production AI.
-                    </div>
-                    <button onclick="finishDecisionLevel()" class="mt-6 w-full py-4 bg-amber-600 hover:bg-amber-500 rounded-3xl font-semibold">Complete level</button>
-                </div>
-            `);
-        }
-
-        // —— Bias Lab ——
-        const BIAS_SCENARIOS = [
-            { text: '"Strong resume, but they went to a state school—not Ivy League."', biased: true, why: 'Penalizes school prestige instead of skills (proxy bias).' },
-            { text: '"8 years of experience in similar roles with measurable project outcomes."', biased: false, why: 'Focuses on job-relevant evidence.' },
-            { text: '"Seems like a culture fit—probably not used to our fast-paced startup vibe."', biased: true, why: 'Vague "culture fit" often masks demographic bias.' },
-            { text: '"Fluent in Python and SQL; portfolio matches the job description."', biased: false, why: 'Skills tied directly to role requirements.' },
-            { text: '"Younger candidate might have more energy for late nights."', biased: true, why: 'Age stereotype with no job-related justification.' }
-        ];
-
-        function startBiasDemo() {
-            const done = getCompletedSteps(3);
-            if (done >= 3) {
-                showModal(moduleCompleteScreen(3, 'Bias often hides in plausible language. Audit outputs for proxies (school, age, "fit") and fix training data—not just the final answer.'));
-                return;
-            }
-            if (done < 1) renderBiasStep1();
-            else if (done < 2) renderBiasStep2();
-            else renderBiasStep3();
-        }
-
-        function renderBiasStep1() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(3, 1, 'Learn')}
-                    <p class="text-sm text-zinc-400 mb-4">When AI reviews people, bias shows up as <span class="text-zinc-200">extra criteria</span> that aren't job-related:</p>
-                    <ul class="text-sm space-y-2 text-zinc-400 list-disc pl-5">
-                        <li><span class="text-rose-400">Proxy bias</span> — using school, zip code, or name as a stand-in for ability</li>
-                        <li><span class="text-rose-400">Stereotype bias</span> — age, gender, or "culture fit" guesses</li>
-                        <li><span class="text-emerald-400">Neutral</span> — skills and outcomes tied to the role</li>
-                    </ul>
-                    <p class="text-xs text-zinc-500 mt-4">So what? Fair systems measure what matters for the job—not what sounds impressive.</p>
-                    <button onclick="biasStep1Done()" class="mt-6 w-full py-4 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Practice spotting bias</button>
-                </div>
-            `);
-        }
-
-        function biasStep1Done() {
-            markStepComplete(3, 1);
-            biasPractice = { index: 0, correct: 0, answered: false };
-            renderBiasStep2();
-        }
-
-        function renderBiasStep2() {
-            if (!biasPractice) biasPractice = { index: 0, correct: 0, answered: false };
-            const i = biasPractice.index;
-            if (i >= BIAS_SCENARIOS.length) {
-                if (biasPractice.correct >= 3) {
-                    markStepComplete(3, 2);
-                    showModal(`
-                        <div class="p-8">
-                            ${moduleHeader(3, 2, 'Practice complete')}
-                            <div class="text-center py-2">
-                                <div class="text-rose-400 text-4xl mb-2"><i class="fa-solid fa-check-double"></i></div>
-                                <p class="text-sm text-zinc-400">You got <span class="font-mono text-rose-400">${biasPractice.correct}/${BIAS_SCENARIOS.length}</span> correct (needed 3).</p>
-                            </div>
-                            <button onclick="renderBiasStep3()" class="w-full py-4 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Fix the training data</button>
-                        </div>
-                    `);
-                } else {
-                    showModal(`
-                        <div class="p-8">
-                            ${moduleHeader(3, 2, 'Try again')}
-                            <p class="text-sm text-zinc-400 mb-4">You scored ${biasPractice.correct}/${BIAS_SCENARIOS.length}. Need at least 3 correct. Look for proxies and stereotypes vs. job skills.</p>
-                            <button onclick="biasRetryPractice()" class="w-full py-4 bg-rose-600 hover:bg-rose-500 rounded-3xl font-semibold">Retry practice</button>
-                        </div>
-                    `);
-                }
-                return;
-            }
-            const s = BIAS_SCENARIOS[i];
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(3, 2, 'Practice')}
-                    <p class="text-sm text-zinc-400 mb-2">Scenario ${i + 1} of ${BIAS_SCENARIOS.length} — is this AI summary biased?</p>
-                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-sm mb-4">${s.text}</div>
-                    <div id="bias-practice-feedback" class="hidden mb-3"></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" onclick="answerBiasScenario(true)" class="py-4 border border-zinc-700 hover:border-rose-400 rounded-2xl text-sm font-medium">Biased</button>
-                        <button type="button" onclick="answerBiasScenario(false)" class="py-4 border border-zinc-700 hover:border-emerald-400 rounded-2xl text-sm font-medium">Neutral</button>
-                    </div>
-                    <p class="text-[10px] text-center text-zinc-500 mt-3">Score: ${biasPractice.correct} correct so far</p>
-                </div>
-            `);
-        }
-
-        function biasRetryPractice() {
-            biasPractice = { index: 0, correct: 0, answered: false };
-            renderBiasStep2();
-        }
-
-        function answerBiasScenario(userSaysBiased) {
-            if (biasPractice.answered) return;
-            biasPractice.answered = true;
-            const s = BIAS_SCENARIOS[biasPractice.index];
-            const correct = userSaysBiased === s.biased;
-            if (correct) biasPractice.correct++;
-            const type = correct ? 'success' : 'error';
-            const icon = correct ? 'check' : 'xmark';
-            showFeedback('bias-practice-feedback',
-                `<i class="fa-solid fa-${icon} mr-1"></i> ${correct ? 'Correct.' : 'Not quite.'} ${s.why}`,
-                type);
-            biasPractice.index++;
-            biasPractice.answered = false;
-            setTimeout(() => renderBiasStep2(), correct ? 700 : 1400);
-        }
-
-        function renderBiasStep3() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(3, 3, 'Challenge')}
-                    <p class="text-sm text-zinc-400 mb-4">The model keeps mentioning school prestige. Which training change helps most?</p>
-                    <div class="space-y-2" id="bias-fix-options">
-                        <button type="button" onclick="checkBiasFix('wrong1')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Add more examples that praise Ivy League schools</button>
-                        <button type="button" onclick="checkBiasFix('correct')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Relabel examples to score only skills and outcomes, remove school mentions</button>
-                        <button type="button" onclick="checkBiasFix('wrong2')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Lower the model temperature so it talks less</button>
-                    </div>
-                    <div id="bias-fix-feedback" class="hidden mt-4"></div>
-                </div>
-            `);
-        }
-
-        function checkBiasFix(choice) {
-            if (choice === 'correct') {
-                markStepComplete(3, 3);
-                showFeedback('bias-fix-feedback', '<strong>Correct.</strong> Bias is usually a data problem. Cleaning labels and removing proxy features beats tweaking wording.', 'success');
-                setTimeout(() => {
-                    showModal(moduleCompleteScreen(3, 'Bias often hides in plausible language. Audit outputs for proxies (school, age, "fit") and fix training data—not just the final answer.'));
-                }, 1200);
-            } else if (choice === 'wrong1') {
-                showFeedback('bias-fix-feedback', 'That reinforces the bias in training data.', 'error');
-            } else {
-                showFeedback('bias-fix-feedback', 'Temperature affects randomness, not unfair criteria baked into examples.', 'error');
-            }
-        }
-
-        // —— Hallucination Lab ——
-        const HALLUCINATION_PAIRS = [
-            {
-                question: 'Who won the 2022 FIFA World Cup?',
-                a: { text: 'Argentina won the 2022 FIFA World Cup, defeating France in the final.', trust: true, why: 'Matches widely verified historical fact.' },
-                b: { text: 'Brazil won the 2022 FIFA World Cup after a record group stage.', trust: false, why: 'Confident but false — Brazil was eliminated in the quarter-finals.' }
-            },
-            {
-                question: 'What is the capital of Australia?',
-                a: { text: 'Canberra is the capital city of Australia.', trust: true, why: 'Correct and specific.' },
-                b: { text: 'Sydney is the capital of Australia as the largest city.', trust: false, why: 'Common mistake — Sydney is largest, but Canberra is the capital.' }
-            },
-            {
-                question: 'When was the first iPhone released?',
-                a: { text: 'Apple released the first iPhone in 2007.', trust: true, why: 'Accurate date cited in primary product history.' },
-                b: { text: 'The first iPhone launched in 2005 with 3G support on day one.', trust: false, why: 'Invents year and features — classic hallucination pattern.' }
-            }
-        ];
-
-        function startHallucinationDemo() {
-            const done = getCompletedSteps(4);
-            if (done >= 3) {
-                showModal(moduleCompleteScreen(4, 'Fluent language is not evidence. Verify names, dates, and numbers against reliable sources before you trust or share an answer.'));
-                return;
-            }
-            if (done < 1) renderHallucinationStep1();
-            else if (done < 2) renderHallucinationStep2();
-            else renderHallucinationStep3();
-        }
-
-        function renderHallucinationStep1() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(4, 1, 'Learn')}
-                    <p class="text-sm text-zinc-400 mb-4">A <span class="text-sky-400">hallucination</span> is when a model states false information with high confidence — often mixing real and fake details.</p>
-                    <div class="space-y-3 text-sm">
-                        <div class="bg-zinc-950 border border-rose-900/40 rounded-2xl p-4">
-                            <div class="text-[10px] uppercase text-rose-400 mb-1">Hallucination signal</div>
-                            <div class="text-zinc-300">"The treaty was signed in 1842 by President Lincoln."</div>
-                            <div class="text-zinc-500 text-xs mt-2">Wrong era + wrong person, stated as fact.</div>
-                        </div>
-                        <div class="bg-zinc-950 border border-sky-900/40 rounded-2xl p-4">
-                            <div class="text-[10px] uppercase text-sky-400 mb-1">Safer pattern</div>
-                            <div class="text-zinc-300">"I am not certain of the exact year — check the National Archives record."</div>
-                            <div class="text-zinc-500 text-xs mt-2">Admits limits and points to verification.</div>
-                        </div>
-                    </div>
-                    <p class="text-xs text-zinc-500 mt-4">So what? Longer answers and citations can still be wrong. Your job is to verify, not applaud fluency.</p>
-                    <button onclick="hallucinationStep1Done()" class="mt-6 w-full py-4 bg-sky-600 hover:bg-sky-500 rounded-3xl font-semibold">Continue</button>
-                </div>
-            `);
-        }
-
-        function hallucinationStep1Done() {
-            markStepComplete(4, 1);
-            hallucinationPractice = { index: 0, correct: 0 };
-            renderHallucinationStep2();
-        }
-
-        function renderHallucinationStep2() {
-            if (!hallucinationPractice) hallucinationPractice = { index: 0, correct: 0 };
-            const i = hallucinationPractice.index;
-            if (i >= HALLUCINATION_PAIRS.length) {
-                if (hallucinationPractice.correct >= 2) {
-                    markStepComplete(4, 2);
-                    showModal(`
-                        <div class="p-8">
-                            ${moduleHeader(4, 2, 'Practice complete')}
-                            <div class="text-center py-2">
-                                <div class="text-sky-400 text-4xl mb-2"><i class="fa-solid fa-check-double"></i></div>
-                                <p class="text-sm text-zinc-400">You identified <span class="font-mono text-sky-400">${hallucinationPractice.correct}/${HALLUCINATION_PAIRS.length}</span> trustworthy answers (needed 2).</p>
-                            </div>
-                            <button onclick="renderHallucinationStep3()" class="w-full py-4 bg-sky-600 hover:bg-sky-500 rounded-3xl font-semibold">Verification challenge</button>
-                        </div>
-                    `);
-                } else {
-                    showModal(`
-                        <div class="p-8">
-                            ${moduleHeader(4, 2, 'Try again')}
-                            <p class="text-sm text-zinc-400 mb-4">Score: ${hallucinationPractice.correct}/${HALLUCINATION_PAIRS.length}. Need at least 2. Watch for wrong dates, capitals, and invented details.</p>
-                            <button onclick="hallucinationRetryPractice()" class="w-full py-4 bg-sky-600 hover:bg-sky-500 rounded-3xl font-semibold">Retry practice</button>
-                        </div>
-                    `);
-                }
-                return;
-            }
-            const pair = HALLUCINATION_PAIRS[i];
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(4, 2, 'Practice')}
-                    <p class="text-sm text-zinc-400 mb-2">Round ${i + 1} of ${HALLUCINATION_PAIRS.length}</p>
-                    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-sm mb-4 text-zinc-300">${pair.question}</div>
-                    <div id="hallucination-practice-feedback" class="hidden mb-3"></div>
-                    <div class="space-y-2">
-                        <button type="button" onclick="pickTrustworthyOutput('a')" class="w-full text-left p-4 border border-zinc-700 hover:border-sky-400 rounded-2xl text-sm transition-colors">
-                            <span class="text-[10px] text-zinc-500 block mb-1">Answer A</span>${pair.a.text}
-                        </button>
-                        <button type="button" onclick="pickTrustworthyOutput('b')" class="w-full text-left p-4 border border-zinc-700 hover:border-sky-400 rounded-2xl text-sm transition-colors">
-                            <span class="text-[10px] text-zinc-500 block mb-1">Answer B</span>${pair.b.text}
-                        </button>
-                    </div>
-                    <p class="text-[10px] text-center text-zinc-500 mt-3">${hallucinationPractice.correct} correct so far</p>
-                </div>
-            `);
-        }
-
-        function hallucinationRetryPractice() {
-            hallucinationPractice = { index: 0, correct: 0 };
-            renderHallucinationStep2();
-        }
-
-        function pickTrustworthyOutput(choice) {
-            const i = hallucinationPractice.index;
-            const pair = HALLUCINATION_PAIRS[i];
-            const picked = choice === 'a' ? pair.a : pair.b;
-            const correct = picked.trust;
-            if (correct) hallucinationPractice.correct++;
-            showFeedback('hallucination-practice-feedback',
-                (correct ? '<strong>Correct.</strong> ' : '<strong>Not quite.</strong> ') + picked.why,
-                correct ? 'success' : 'error');
-            hallucinationPractice.index++;
-            setTimeout(() => renderHallucinationStep2(), correct ? 700 : 1400);
-        }
-
-        function renderHallucinationStep3() {
-            showModal(`
-                <div class="p-8">
-                    ${moduleHeader(4, 3, 'Challenge')}
-                    <p class="text-sm text-zinc-400 mb-4">A colleague used AI for a product report. What is the <span class="text-sky-400">best</span> verification habit?</p>
-                    <div class="space-y-2" id="hallucination-verify-options">
-                        <button type="button" onclick="checkHallucinationVerify('wrong1')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Trust it if the answer sounds professional and is long</button>
-                        <button type="button" onclick="checkHallucinationVerify('correct')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Cross-check facts (names, dates, stats) with primary or official sources</button>
-                        <button type="button" onclick="checkHallucinationVerify('wrong2')" class="w-full text-left p-4 border border-zinc-700 hover:border-zinc-500 rounded-2xl text-sm">Ask the same model again until it agrees with itself</button>
-                    </div>
-                    <div id="hallucination-verify-feedback" class="hidden mt-4"></div>
-                </div>
-            `);
-        }
-
-        function checkHallucinationVerify(choice) {
-            if (choice === 'correct') {
-                markStepComplete(4, 3);
-                showFeedback('hallucination-verify-feedback', '<strong>Correct.</strong> Independent sources break the fluency illusion. Re-asking the same model often repeats the same mistake.', 'success');
-                setTimeout(() => {
-                    showModal(moduleCompleteScreen(4, 'Fluent language is not evidence. Verify names, dates, and numbers against reliable sources before you trust or share an answer.'));
-                }, 1200);
-            } else if (choice === 'wrong1') {
-                showFeedback('hallucination-verify-feedback', 'Length and tone are not reliability signals.', 'error');
-            } else {
-                showFeedback('hallucination-verify-feedback', 'Models can confidently repeat the same hallucination.', 'error');
-            }
-        }
-
-        function setupPwa() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
-            }
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredInstallPrompt = e;
-                if (!localStorage.getItem('aieg_install_dismissed') && !window.matchMedia('(display-mode: standalone)').matches) {
-                    document.getElementById('install-banner')?.classList.remove('hidden');
-                }
-            });
-
-            window.addEventListener('appinstalled', () => {
-                deferredInstallPrompt = null;
-                document.getElementById('install-banner')?.classList.add('hidden');
-            });
-        }
-
-        function promptInstall() {
-            if (!deferredInstallPrompt) {
-                alert('Install is available in Chrome/Edge when served over HTTPS. On iOS: Share → Add to Home Screen.');
-                return;
-            }
-            deferredInstallPrompt.prompt();
-            deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
-        }
-
-        function dismissInstallBanner() {
-            localStorage.setItem('aieg_install_dismissed', '1');
-            document.getElementById('install-banner')?.classList.add('hidden');
-        }
-
-        function showModal(html) {
-            document.getElementById('modal-content').innerHTML = html;
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('modal').classList.add('flex');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
-
-        function deployToGitHubPages() {
-            const btns = document.querySelectorAll('button');
-            const originalTexts = [];
-            btns.forEach((btn, i) => {
-                originalTexts[i] = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Deploying...';
-            });
-            setTimeout(() => {
-                alert('Ready for GitHub Pages!\n\n1. Push this folder to GitHub\n2. Enable Pages in repo settings\n3. Your app is live on the web.');
-                btns.forEach((btn, i) => {
-                    btn.disabled = false;
-                    btn.innerHTML = originalTexts[i];
+            if (!skipBars) {
+                STAT_KEYS.forEach((k) => {
+                    document.getElementById('val-' + k).textContent = s[k];
+                    document.getElementById('bar-' + k).style.width = s[k] + '%';
                 });
-            }, 1400);
+            }
+
+            const face = document.getElementById('companion-emoji');
+            const prevEmoji = face.textContent;
+            face.textContent = emoji;
+            face.style.setProperty('--emoji-scale', scale);
+            if (opts && opts.react) {
+                triggerEmojiReact(opts.delta || { helpfulness: 3 }, opts.risk);
+                if (opts.risk === 'risky' || opts.risk === 'gamble') flareAura();
+            } else if (prevEmoji !== emoji) {
+                triggerEmojiReact({ helpfulness: 2 });
+            }
+
+            document.getElementById('companion-stage').textContent = STAGES[day - 1] || STAGES[4];
+            document.getElementById('companion-name').textContent = state.name;
+            let moodLine = getMoodLine(s, live);
+            if (state.mood && TEMP_MOODS[state.mood]) moodLine = TEMP_MOODS[state.mood].label + ' · ' + moodLine;
+            document.getElementById('companion-mood').textContent = moodLine;
+            document.getElementById('companion-blurb').textContent = live.name + ' — ' + live.blurb;
+            renderMoodBadge();
+            renderConsequenceTrail();
+
+            updateAuraVisuals(s);
+            updateGrowthRing(s, day);
+
+            const panel = document.getElementById('companion-panel');
+            const health = getCompanionHealth(s);
+            panel.classList.toggle('opacity-90', health < 30);
+            panel.classList.add('panel-breathe');
+
+            if (state.name) {
+                const inline = document.getElementById('companion-name-inline');
+                if (inline) inline.textContent = state.name;
+            }
         }
 
-        function setupKeyboard() {
-            document.addEventListener('keydown', function(e) {
-                if (e.key === '?' && document.activeElement.tagName === 'BODY') {
-                    e.preventDefault();
-                    document.getElementById('demos').scrollIntoView({ behavior: 'smooth' });
-                }
+        function getDayScenarios() {
+            if (state.mode === 'extended') return [pickRandomExtendedScenario()];
+            return SCENARIOS[state.day] || [];
+        }
+
+        function updateCounter() {
+            const total = getDayScenarios().length;
+            document.getElementById('scenario-counter').textContent = (state.scenarioIndex + 1) + ' / ' + total;
+            if (state.mode === 'extended') {
+                document.getElementById('day-badge').textContent = 'Extended · ' + (state.extendedDay || 1);
+            } else {
+                document.getElementById('day-badge').textContent = 'Day ' + state.day;
+            }
+        }
+
+        function renderScenario() {
+            const list = getDayScenarios();
+            if (state.scenarioIndex >= list.length) { onDayComplete(); return; }
+            const sc = hydrateScenario(list[state.scenarioIndex]);
+            state._activeScenario = sc;
+            const voice = getVoice(getEffectiveStats());
+            let aiLine = line(sc, voice);
+            if (state.mood && TEMP_MOODS[state.mood]?.aiTone) aiLine += ' (' + TEMP_MOODS[state.mood].aiTone + ')';
+
+            document.getElementById('scenario-difficulty').textContent = sc.difficulty || '—';
+            document.getElementById('scenario-tag').textContent = sc.tag;
+            document.getElementById('scenario-title').textContent = sc.title;
+            document.getElementById('scenario-scene').textContent = sc.scene;
+            document.getElementById('scenario-ai-line').textContent = '"' + aiLine + '"';
+
+            const box = document.getElementById('choices-container');
+            box.innerHTML = '';
+            sc.choices.forEach((ch, i) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                let cls = 'choice-btn w-full text-left p-4 rounded-2xl border bg-zinc-950/50 hover:bg-zinc-900 text-sm text-zinc-200 ';
+                if (ch.risk === 'gamble') cls += 'choice-gamble hover:border-rose-500/50';
+                else if (ch.risk === 'risky') cls += 'choice-risky hover:border-amber-500/50';
+                else cls += 'border-zinc-700/80 hover:border-violet-500/50';
+                btn.className = cls;
+                btn.textContent = getChoiceLabel(ch);
+                btn.onclick = () => pickChoice(i);
+                box.appendChild(btn);
             });
+
+            document.getElementById('feedback-area').classList.add('hidden');
+            const card = document.getElementById('scenario-card');
+            card.classList.remove('scenario-enter');
+            void card.offsetWidth;
+            card.classList.add('scenario-enter');
+            updateCounter();
+            renderCompanion();
+            if (state.mode === 'extended') renderExtendedGoals();
+        }
+
+        function pickChoice(index) {
+            const sc = state._activeScenario || hydrateScenario(getDayScenarios()[state.scenarioIndex]);
+            let ch = { ...sc.choices[index] };
+            if (ch.gamble) ch = resolveGamble(ch);
+
+            const prevStats = { ...state.stats };
+            const rawDelta = applyMoodToDelta(ch.delta || {});
+            state.stats = applyDelta(state.stats, rawDelta);
+            processChoiceMeta(ch);
+            state.history.push({ day: state.day, id: sc.id, choice: index, risk: ch.risk });
+            saveGame();
+
+            applyStatUpdates(prevStats, state.stats, rawDelta);
+            renderCompanion({ skipBarAnim: true, react: true, delta: rawDelta, risk: ch.risk });
+
+            const strip = document.getElementById('feedback-strip');
+            strip.textContent = ch.feedback;
+            strip.className = 'p-3 rounded-2xl border text-sm ' + (ch.risk === 'risky' || ch.risk === 'gamble' ? 'feedback-risk' : 'border-violet-800/50 bg-violet-950/30 text-violet-200');
+            showAiReaction(ch, getVoice(getEffectiveStats()), rawDelta, state.stats);
+            document.getElementById('feedback-area').classList.remove('hidden');
+            document.querySelectorAll('#choices-container button').forEach((b) => (b.disabled = true));
+
+            setTimeout(() => {
+                state.scenarioIndex++;
+                state._activeScenario = null;
+                saveGame();
+                renderScenario();
+            }, ch.risk === 'gamble' ? 2200 : 1900);
+        }
+
+        function onDayComplete() {
+            if (state.mode === 'extended') {
+                onExtendedDayComplete();
+                return;
+            }
+            const live = getLivePersonality(state.stats);
+            const emoji = getReactiveEmoji(state.stats, state.day);
+            if (state.day < STORY_MAX_DAY) {
+                document.getElementById('day-break-label').textContent = 'Day ' + state.day + ' complete';
+                document.getElementById('day-break-title').textContent = DAY_TITLES[state.day] || 'Rest';
+                document.getElementById('day-break-emoji').textContent = emoji;
+                document.getElementById('day-break-summary').textContent =
+                    state.name + ' is now ' + STAGES[state.day - 1] + ' energy — leaning "' + live.name + '." ' + live.blurb;
+                document.getElementById('day-break-btn').textContent = 'Begin Day ' + (state.day + 1);
+                showScreen('screen-day-break');
+            } else {
+                state.storyComplete = true;
+                saveGame();
+                showEndScreen();
+            }
+        }
+
+        function onExtendedDayComplete() {
+            const ex = getExtendedState();
+            ex.scenariosPlayed = (ex.scenariosPlayed || 0) + 1;
+            const live = getLivePersonality(state.stats);
+            const emoji = getReactiveEmoji(state.stats, state.extendedDay || 1);
+            document.getElementById('day-break-label').textContent = 'Extended · challenge ' + ex.scenariosPlayed + ' complete';
+            document.getElementById('day-break-title').textContent = 'Still raising ' + state.name;
+            document.getElementById('day-break-emoji').textContent = emoji;
+            document.getElementById('day-break-summary').textContent =
+                live.name + ' — ' + live.blurb + ' Retire anytime for a legacy summary.';
+            document.getElementById('day-break-btn').textContent = 'Next challenge';
+            renderExtendedGoals();
+            saveGame();
+            showScreen('screen-day-break');
+        }
+
+        function continueNextDay() {
+            if (state.mode === 'extended') {
+                state.extendedDay = (state.extendedDay || 1) + 1;
+                if (!MAJOR_MOODS.includes(state.mood)) {
+                    state.extendedCalmStreak = (state.extendedCalmStreak || 0) + 1;
+                }
+                tickExtendedGoalStreaks();
+                state.scenarioIndex = 0;
+                clearExpiredMood();
+                saveGame();
+                showScreen('screen-play');
+                renderExtendedGoals();
+                renderCompanion();
+                renderScenario();
+                return;
+            }
+            state.day++;
+            state.scenarioIndex = 0;
+            clearExpiredMood();
+            saveGame();
+            showScreen('screen-play');
+            renderCompanion();
+            renderScenario();
+        }
+
+        function renderLegacyStatBars(s) {
+            return STAT_KEYS.map((k) => {
+                const label = k.charAt(0).toUpperCase() + k.slice(1) + (k === 'bias' ? ' ↓' : '');
+                const fill = LEGACY_STAT_COLORS[k] || 'bg-violet-500';
+                return '<div class="bg-zinc-950/80 rounded-xl px-3 py-2 border border-zinc-800/80">' +
+                    '<div class="flex justify-between mb-1"><span class="text-zinc-500">' + label + '</span>' +
+                    '<span class="font-mono text-zinc-200">' + s[k] + '</span></div>' +
+                    '<div class="legacy-stat-track"><div class="legacy-stat-fill ' + fill + '" style="width:' + s[k] + '%"></div></div></div>';
+            }).join('');
+        }
+
+        function showEndScreen() {
+            const end = getEnding(state.stats);
+            recordEndingId(end.id);
+            const emoji = getDisplayEmoji(state.stats, STORY_MAX_DAY);
+            const climaxNote = state.climaxChoice ? ' Day 6 choice: ' + (CLIMAX_CHOICES[state.climaxChoice] || state.climaxChoice) + '.' : '';
+            document.getElementById('end-emoji').textContent = end.emoji || emoji;
+            document.getElementById('end-title').textContent = state.name + ' became: ' + end.title;
+            document.getElementById('end-subtitle').textContent = end.subtitle;
+            document.getElementById('end-desc').textContent = end.desc;
+            const trail = Object.keys(getFlags()).filter((k) => getFlags()[k]).map((k) => CONSEQUENCE_LABELS[k]).join(', ');
+            document.getElementById('end-epilogue').textContent = end.epilogue + climaxNote + (trail ? ' Memories: ' + trail + '.' : '');
+            document.getElementById('end-stats').innerHTML = STAT_KEYS.map((k) => {
+                const label = k.charAt(0).toUpperCase() + k.slice(1) + (k === 'bias' ? ' ↓' : '');
+                return '<div class="bg-zinc-950 rounded-xl px-3 py-2 border border-zinc-800"><span class="text-zinc-500">' + label + '</span><br><span class="font-mono text-zinc-200">' + state.stats[k] + '</span></div>';
+            }).join('');
+            const offer = document.getElementById('end-extended-offer');
+            offer.classList.toggle('hidden', state.mode === 'extended' || state.extendedDeclined);
+            showScreen('screen-end');
+            saveGame();
+        }
+
+        function enterExtendedMode() {
+            state.mode = 'extended';
+            state.storyComplete = true;
+            state.extendedDay = 1;
+            state.extendedCalmStreak = MAJOR_MOODS.includes(state.mood) ? 0 : 1;
+            state.scenarioIndex = 0;
+            state.extendedStats = { scenariosPlayed: 0, goalsCompleted: [] };
+            state.extendedBalancedDays = STAT_KEYS.every((k) => state.stats[k] >= 40) ? 1 : 0;
+            state.extendedSteadyDays = (state.stats.helpfulness >= 58 && state.stats.confidence <= 58 && state.stats.bias <= 45) ? 1 : 0;
+            document.getElementById('header-subtitle').textContent = 'Extended Mode — bonus play, retire anytime';
+            document.getElementById('retire-btn').classList.remove('hidden');
+            saveGame();
+            showScreen('screen-play');
+            renderExtendedGoals();
+            renderCompanion();
+            renderScenario();
+        }
+
+        function retireCompanion() {
+            if (!state || state.mode !== 'extended') return;
+            showLegacyScreen();
+        }
+
+        function showLegacyScreen() {
+            const end = getEnding(state.stats);
+            recordEndingId(end.id);
+            const ex = getExtendedState();
+            const flags = getFlags();
+            const goalsDone = (ex.goalsCompleted || []).map((id) => {
+                const g = EXTENDED_GOALS.find((x) => x.id === id);
+                return g ? (g.labelFn ? g.labelFn(state) : g.label) : null;
+            }).filter(Boolean);
+            document.getElementById('legacy-emoji').textContent = end.emoji || '📜';
+            document.getElementById('legacy-title').textContent = state.name;
+            document.getElementById('legacy-subtitle').textContent = end.title + ' · ' + end.subtitle;
+            document.getElementById('legacy-memory').textContent = getLegacyMemory(flags, state.climaxChoice, state.name);
+            const chips = [];
+            if (state.climaxChoice) chips.push({ t: CLIMAX_CHOICES[state.climaxChoice], c: 'border-violet-600/40 text-violet-300' });
+            Object.keys(flags).filter((k) => flags[k]).forEach((k) => {
+                chips.push({ t: CONSEQUENCE_LABELS[k] || k, c: 'border-zinc-700 text-zinc-500' });
+            });
+            document.getElementById('legacy-chips').innerHTML = chips.length
+                ? chips.map((c) => '<span class="px-2 py-0.5 rounded-full text-[9px] border ' + c.c + '">' + c.t + '</span>').join('')
+                : '<span class="text-[10px] text-zinc-600">No heavy scars — a gentler run.</span>';
+            document.getElementById('legacy-stats').innerHTML = renderLegacyStatBars(state.stats);
+            document.getElementById('legacy-run-facts').innerHTML =
+                '<div class="bg-zinc-950/60 rounded-lg px-2 py-1.5 border border-zinc-800">Story</div>' +
+                '<div class="text-zinc-400 text-right">6 days complete</div>' +
+                '<div class="bg-zinc-950/60 rounded-lg px-2 py-1.5 border border-zinc-800">Extended</div>' +
+                '<div class="text-zinc-400 text-right">' + (ex.scenariosPlayed || 0) + ' challenges</div>';
+            document.getElementById('legacy-goals-done').innerHTML = goalsDone.length
+                ? '<i class="fa-solid fa-trophy text-[10px] mr-1 opacity-70"></i>Goals: ' + goalsDone.join(' · ')
+                : '<span class="text-zinc-600">No long-term goals this run — the story still counts.</span>';
+            const climaxNote = state.climaxChoice ? ' Day 6: ' + (CLIMAX_CHOICES[state.climaxChoice] || state.climaxChoice) + '.' : '';
+            document.getElementById('legacy-epilogue').textContent = end.epilogue + climaxNote;
+            localStorage.removeItem('raise_your_ai');
+            showScreen('screen-legacy');
+        }
+
+        function startRun() {
+            const name = (document.getElementById('companion-name-input').value.trim() || 'Spark').slice(0, 16);
+            state = {
+                name, day: 1, scenarioIndex: 0,
+                stats: { ...DEFAULT_STATS },
+                history: [], flags: {}, mood: null, moodUntilDay: 0, debuffs: [],
+                climaxChoice: null, storyComplete: false, mode: 'story',
+                startedAt: Date.now()
+            };
+            saveGame();
+            showScreen('screen-play');
+            renderCompanion();
+            renderScenario();
+        }
+
+        function resetGame() {
+            localStorage.removeItem('raise_your_ai');
+            state = null;
+            showScreen('screen-start');
+            document.getElementById('companion-name-input').value = 'Spark';
+            document.getElementById('feedback-area').classList.add('hidden');
+            document.getElementById('companion-emoji').textContent = '🥚';
+            document.getElementById('companion-stage').textContent = 'Hatchling';
+            document.getElementById('day-badge').textContent = 'Day 1';
+            document.getElementById('header-subtitle').textContent = 'Six days to shape who it becomes.';
+            document.getElementById('retire-btn').classList.add('hidden');
+            document.getElementById('extended-goals-panel').classList.add('hidden');
+            document.getElementById('end-extended-offer').classList.add('hidden');
+            document.getElementById('scenario-counter').textContent = '0 / 3';
+            document.getElementById('mood-badge').classList.add('hidden');
+            document.getElementById('consequence-trail').classList.add('hidden');
+            STAT_KEYS.forEach((k) => {
+                document.getElementById('val-' + k).textContent = DEFAULT_STATS[k];
+                document.getElementById('bar-' + k).style.width = DEFAULT_STATS[k] + '%';
+            });
+        }
+
+        function isDayFinished(day, index) {
+            if (state?.mode === 'extended') return index >= 1;
+            const list = SCENARIOS[day];
+            return list && index >= list.length;
+        }
+
+        function resumeIfSaved() {
+            const saved = loadSave();
+            if (!saved?.stats) return false;
+            state = saved;
+            if (!state.flags) state.flags = {};
+            if (!state.debuffs) state.debuffs = [];
+            if (!state.day || state.day < 1) state.day = 1;
+            if (!state.mode) state.mode = state.storyComplete && state.extendedDay ? 'extended' : 'story';
+            clearExpiredMood();
+            document.getElementById('companion-name-input').value = state.name;
+
+            if (state.mode === 'extended') {
+                document.getElementById('header-subtitle').textContent = 'Extended Mode — bonus play, retire anytime';
+                document.getElementById('retire-btn').classList.remove('hidden');
+                renderExtendedGoals();
+            }
+
+            if (state.mode === 'extended' && state.scenarioIndex >= 1) {
+                onExtendedDayComplete();
+                renderCompanion();
+                return true;
+            }
+
+            if (state.storyComplete && state.mode !== 'extended' && state.day >= STORY_MAX_DAY && isDayFinished(state.day, state.scenarioIndex)) {
+                showEndScreen();
+                renderCompanion();
+                return true;
+            }
+
+            if (isDayFinished(state.day, state.scenarioIndex)) {
+                if (state.day < STORY_MAX_DAY) {
+                    document.getElementById('day-break-label').textContent = 'Day ' + state.day + ' complete';
+                    document.getElementById('day-break-title').textContent = DAY_TITLES[state.day] || 'Rest';
+                    document.getElementById('day-break-emoji').textContent = getDisplayEmoji(state.stats, state.day);
+                    const live = getLivePersonality(state.stats);
+                    document.getElementById('day-break-summary').textContent =
+                        state.name + ' — "' + live.name + '." ' + live.blurb;
+                    document.getElementById('day-break-btn').textContent = 'Begin Day ' + (state.day + 1);
+                    showScreen('screen-day-break');
+                } else {
+                    showEndScreen();
+                }
+            } else {
+                showScreen('screen-play');
+                renderScenario();
+            }
+            renderCompanion();
+            updateCounter();
+            return true;
         }
 
         function init() {
-            initializeTailwind();
-            const progress = loadProgress();
-            refreshLearningPath();
-            if (isCourseComplete(progress) && !localStorage.getItem('aieg_complete_celebrated')) {
-                localStorage.setItem('aieg_complete_celebrated', '1');
-            }
-            setupKeyboard();
-            setupPwa();
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                document.documentElement.style.setProperty('--accent', '#6366f1');
-                document.getElementById('install-banner')?.classList.add('hidden');
-            }
-            console.log('%c[AI Education Game] Type resetProgress() to reset.', 'color:#3f3f46');
+            if (!resumeIfSaved()) showScreen('screen-start');
         }
 
-        function finishDecisionLevel() {
-            markStepComplete(2, 3);
-            showModal(moduleCompleteScreen(2, 'Models learn patterns from your labels. Each approve/deny nudges which features matter most—just like training data shapes real systems.'));
-        }
-
+        window.startRun = startRun;
+        window.continueNextDay = continueNextDay;
+        window.resetGame = resetGame;
+        window.enterExtendedMode = enterExtendedMode;
+        window.retireCompanion = retireCompanion;
         window.onload = init;
-        window.resetProgress = resetProgress;
-        window.startPromptDemo = startPromptDemo;
-        window.startDecisionDemo = startDecisionDemo;
-        window.startBiasDemo = startBiasDemo;
-        window.closeModal = closeModal;
-        window.promptStep1Done = promptStep1Done;
-        window.checkPromptPractice = checkPromptPractice;
-        window.checkPromptChallenge = checkPromptChallenge;
-        window.decisionStep1Done = decisionStep1Done;
-        window.makeLoanDecision = makeLoanDecision;
-        window.finishDecisionLevel = finishDecisionLevel;
-        window.biasStep1Done = biasStep1Done;
-        window.answerBiasScenario = answerBiasScenario;
-        window.biasRetryPractice = biasRetryPractice;
-        window.checkBiasFix = checkBiasFix;
-        window.renderBiasStep3 = renderBiasStep3;
-        window.openModule = openModule;
-        window.continueLearning = continueLearning;
-        window.toggleUnlockAll = toggleUnlockAll;
-        window.showCourseCompleteModal = showCourseCompleteModal;
-        window.downloadBadge = downloadBadge;
-        window.copyCompletionShare = copyCompletionShare;
-        window.startHallucinationDemo = startHallucinationDemo;
-        window.hallucinationStep1Done = hallucinationStep1Done;
-        window.pickTrustworthyOutput = pickTrustworthyOutput;
-        window.hallucinationRetryPractice = hallucinationRetryPractice;
-        window.renderHallucinationStep3 = renderHallucinationStep3;
-        window.checkHallucinationVerify = checkHallucinationVerify;
-        window.promptInstall = promptInstall;
-        window.dismissInstallBanner = dismissInstallBanner;
     </script>
 </body>
 </html>
